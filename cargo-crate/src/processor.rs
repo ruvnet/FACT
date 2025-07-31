@@ -1,7 +1,6 @@
 //! Query processing implementation
 
 use ahash::AHashMap;
-use serde::{Deserialize, Serialize};
 
 /// Query processor for FACT
 #[derive(Debug, Clone)]
@@ -189,8 +188,31 @@ mod regex_lite {
         }
         
         pub fn is_match(&self, text: &str) -> bool {
-            // Simplified pattern matching
-            text.contains(&self.pattern.trim_start_matches('^').trim_end_matches('$'))
+            // Simplified pattern matching for specific patterns
+            let cleaned_pattern = self.pattern.trim_start_matches('^').trim_end_matches('$');
+            
+            // Handle patterns with alternatives like (what|who|where|when|why|how)
+            if cleaned_pattern.starts_with('(') && cleaned_pattern.ends_with(')') {
+                let alternatives = cleaned_pattern
+                    .trim_start_matches('(')
+                    .trim_end_matches(')')
+                    .split('|');
+                
+                for alt in alternatives {
+                    if self.pattern.starts_with('^') {
+                        if text.starts_with(alt) {
+                            return true;
+                        }
+                    } else if text.contains(alt) {
+                        return true;
+                    }
+                }
+                false
+            } else if self.pattern.starts_with('^') {
+                text.starts_with(cleaned_pattern)
+            } else {
+                text.contains(cleaned_pattern)
+            }
         }
     }
 }

@@ -1,23 +1,23 @@
 [package]
-name = "fact"
+name = "fact-tools"
 version = "1.0.0"
 authors = ["FACT Team"]
 edition = "2021"
-description = "Fast Augmented Context Tools - High-performance context processing engine"
-documentation = "https://docs.rs/fact"
+description = "FACT (Fast Augmented Context Tools) - High-performance context processing engine for AI applications"
+documentation = "https://docs.rs/fact-tools"
 homepage = "https://github.com/ruvnet/FACT"
 repository = "https://github.com/ruvnet/FACT"
 license = "MIT"
 readme = "README.md"
-keywords = ["cognitive", "templates", "ai", "cache", "performance"]
+keywords = ["fact", "cognitive", "ai", "cache", "performance"]
 categories = ["algorithms", "caching", "command-line-utilities", "web-programming"]
 
 [lib]
-name = "fact"
+name = "fact_tools"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fact"
+name = "fact-tools"
 path = "src/bin/main.rs"
 
 [dependencies]
@@ -27,6 +27,8 @@ serde_json = "1.0"
 ahash = "0.8"
 smallvec = "1.13"
 parking_lot = "0.12"
+chrono = { version = "0.4", features = ["serde"] }
+num_cpus = "1.16"
 
 # CLI dependencies
 clap = { version = "4.4", features = ["derive", "cargo", "env", "unicode"] }
@@ -74,9 +76,10 @@ opt-level = 3
 lto = "fat"
 codegen-units = 1
 
-[[bench]]
-name = "fact_benchmarks"
-harness = false
+
+[[example]]
+name = "basic"
+path = "examples/basic.rs"
 
 [package.metadata.docs.rs]
 all-features = true

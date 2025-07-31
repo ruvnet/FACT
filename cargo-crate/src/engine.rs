@@ -442,7 +442,7 @@ fn extract_entities(value: &serde_json::Value) -> Vec<String> {
         .collect()
 }
 
-fn extract_concepts(value: &serde_json::Value) -> Vec<String> {
+fn extract_concepts(_value: &serde_json::Value) -> Vec<String> {
     // Simplified concept extraction
     vec![
         "processing".to_string(),
@@ -468,21 +468,3 @@ fn count_values(value: &serde_json::Value) -> usize {
     }
 }
 
-// Mock chrono for compilation
-mod chrono {
-    pub struct Utc;
-    
-    impl Utc {
-        pub fn now() -> DateTime {
-            DateTime
-        }
-    }
-    
-    pub struct DateTime;
-    
-    impl DateTime {
-        pub fn to_rfc3339(&self) -> String {
-            "2024-01-01T00:00:00Z".to_string()
-        }
-    }
-}

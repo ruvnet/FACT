@@ -33,12 +33,10 @@
 //! # }
 //! ```
 
-use ahash::AHashMap;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use smallvec::SmallVec;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use thiserror::Error;
 
 pub mod cache;
@@ -108,7 +106,8 @@ impl Fact {
         // Check cache first
         let cache_key = self.generate_cache_key(template_id, &context);
         
-        if let Some(cached) = self.cache.read().get(&cache_key) {
+        // Need to use write lock for get() since it updates access stats
+        if let Some(cached) = self.cache.write().get(&cache_key) {
             return Ok(cached.clone());
         }
         

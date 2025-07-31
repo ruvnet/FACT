@@ -4,7 +4,7 @@ use ahash::AHashMap;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 /// Statistics for cache performance
 #[derive(Debug, Clone, Serialize, Deserialize)]
