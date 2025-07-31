@@ -1,0 +1,80 @@
+{
+  "name": "fact-cli",
+  "version": "1.0.0",
+  "description": "FACT (Fast Augmented Context Tools) - CLI wrapper for the FACT system",
+  "main": "dist/bin/fact.js",
+  "type": "module",
+  "bin": {
+    "fact": "./dist/bin/fact.js",
+    "fact-cli": "./dist/bin/fact.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx bin/fact.ts",
+    "start": "node dist/bin/fact.js",
+    "test": "echo \"Tests coming soon\" && exit 0",
+    "prepare": "npm run build || echo 'Build failed, continuing...'",
+    "postinstall": "node dist/lib/postinstall.js || echo 'Postinstall script not ready yet'",
+    "lint": "echo 'Linting skipped for now'",
+    "format": "echo 'Formatting skipped for now'"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "fact",
+    "cli",
+    "ai",
+    "tools",
+    "financial",
+    "data",
+    "analysis",
+    "cache",
+    "wasm",
+    "anthropic",
+    "claude"
+  ],
+  "dependencies": {
+    "yargs": "^17.7.2",
+    "inquirer": "^9.2.11",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "boxen": "^7.1.1",
+    "node-fetch": "^3.3.2",
+    "dotenv": "^16.3.1",
+    "fs-extra": "^11.1.1",
+    "which": "^4.0.0",
+    "cross-spawn": "^7.0.3",
+    "semver": "^7.5.4",
+    "update-notifier": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/inquirer": "^9.0.6",
+    "@types/fs-extra": "^11.0.2",
+    "@types/which": "^3.0.2",
+    "@types/cross-spawn": "^6.0.3",
+    "@types/semver": "^7.5.4",
+    "typescript": "^5.2.2",
+    "tsx": "^3.14.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruvnet/FACT.git"
+  },
+  "homepage": "https://github.com/ruvnet/FACT#readme",
+  "bugs": {
+    "url": "https://github.com/ruvnet/FACT/issues"
+  },
+  "author": "ruv <ruvnet@gmail.com>",
+  "license": "MIT",
+  "preferGlobal": true,
+  "publishConfig": {
+    "access": "public"
+  }
+}

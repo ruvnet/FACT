@@ -1,0 +1,74 @@
+[package]
+name = "fact-wasm-core"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance WASM core for FACT system"
+authors = ["FACT Team"]
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+js-sys = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde-wasm-bindgen = "0.6"
+wee_alloc = { version = "0.4", optional = true }
+
+# High-performance data structures (WASM-safe versions)
+smallvec = "1.13"
+tinyvec = { version = "1.6", features = ["alloc"] }
+rustc-hash = "1.1"
+
+# WASM-specific optimizations
+console_error_panic_hook = { version = "0.1", optional = true }
+web-sys = { version = "0.3", features = [
+  "console",
+  "Performance",
+  "Window",
+  "Document",
+  "Worker",
+  "MessageEvent",
+  "ErrorEvent",
+] }
+
+# Async support for WASM
+wasm-bindgen-futures = "0.4"
+futures = "0.3"
+
+# Optional crypto for secure caching (disabled for initial build)
+# getrandom = { version = "0.2", features = ["js"], optional = true }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[profile.release]
+# Extreme size optimization for WASM
+opt-level = "s"        # Optimize for size
+lto = "fat"           # Aggressive LTO
+debug = false         # No debug info
+panic = "abort"       # Minimal panic handler
+codegen-units = 1     # Single compilation unit
+overflow-checks = false
+
+# Strip symbols for smallest size
+[profile.release.package."*"]
+opt-level = "s"
+debug = false
+overflow-checks = false
+
+[profile.dev]
+opt-level = 1         # Some optimization for dev
+debug = true
+panic = "unwind"
+
+[features]
+default = ["console_error_panic_hook", "performance", "cache"]
+performance = []
+cache = []
+crypto = []
+debug = ["console_error_panic_hook", "web-sys/console"]
+wee_alloc = ["dep:wee_alloc"]

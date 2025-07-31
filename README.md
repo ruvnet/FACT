@@ -1,7 +1,39 @@
 # FACT: Fast Augmented Context Tools
 
-A revolutionary approach to LLM data retrieval that replaces RAG with prompt caching and deterministic tool execution under the Model Context Protocol
----
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/ruvnet/FACT)
+[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![API](https://img.shields.io/badge/API-RESTful-orange.svg)](docs/5_api_reference.md)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io)
+
+A revolutionary approach to LLM data retrieval that replaces RAG with prompt caching and deterministic tool execution under the Model Context Protocol (MCP).
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure API keys
+cp .env.template .env
+# Edit .env with your API keys
+
+# Initialize system
+python main.py init
+
+# Start interactive mode
+python main.py
+```
+
+## ✨ Key Features
+
+- 🏎️ **Sub-100ms responses** with intelligent caching
+- 💰 **60-90% cost reduction** vs traditional RAG systems  
+- 🔒 **Enterprise security** with comprehensive audit trails
+- 🌐 **Natural language interface** - no SQL knowledge required
+- 🛠️ **MCP-compatible tools** for secure data access
+- 📊 **Real-time monitoring** and performance analytics
+- ☁️ **Hybrid execution** with Arcade.dev integration
 
 ## TL;DR
 FACT (Fast Augmented Context Tools) introduces a new paradigm for language model–powered data retrieval by replacing vector-based retrieval with a prompt-and-tool approach under the Model Context Protocol (MCP). The result? Sub-100ms responses, 60-90% cost reduction, and deterministic, auditable results with no vector stores required.

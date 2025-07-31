@@ -1,0 +1,93 @@
+[package]
+name = "fact-core"
+version = "0.1.0"
+edition = "2021"
+description = "FACT Core - Rust implementation of cognitive template engine and pattern recognition"
+authors = ["FACT Team"]
+license = "MIT"
+repository = "https://github.com/ruvnet/FACT"
+keywords = ["ai", "cognitive", "template", "pattern-recognition", "autonomous"]
+categories = ["artificial-intelligence", "template-engine", "development-tools"]
+
+[lib]
+name = "fact_core"
+crate-type = ["lib", "cdylib"]
+
+[[bin]]
+name = "fact-core"
+path = "src/main.rs"
+
+[dependencies]
+# Core async runtime
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Template engine
+handlebars = "4.5"
+tera = "1.19"
+
+# Pattern recognition and ML
+candle-core = "0.3"
+candle-nn = "0.3"
+candle-transformers = "0.3"
+
+# Hash maps and data structures
+ahash = "0.8"
+dashmap = "5.5"
+smallvec = "1.13"
+tinyvec = { version = "1.6", features = ["alloc"] }
+
+# Time and UUID
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Configuration
+config = "0.14"
+clap = { version = "4.4", features = ["derive"] }
+
+# Database (optional)
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid"], optional = true }
+
+# HTTP client (optional)
+reqwest = { version = "0.11", features = ["json"], optional = true }
+
+# WebAssembly bindings (optional)
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.4"
+
+[features]
+default = ["database", "http"]
+database = ["dep:sqlx"]
+http = ["dep:reqwest"]
+wasm = ["dep:wasm-bindgen", "dep:js-sys", "dep:web-sys"]
+
+[profile.release]
+opt-level = 3
+lto = true
+debug = false
+strip = true
+codegen-units = 1
+
+[profile.dev]
+opt-level = 0
+debug = true
+strip = false

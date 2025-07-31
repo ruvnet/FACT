@@ -1,0 +1,17 @@
+[package]
+# wasm-pack configuration for optimal builds
+
+[package.metadata.wasm-pack.profile.release]
+# Production optimizations
+wasm-opt = ["-Oz", "--enable-mutable-globals"]  # Aggressive size optimization
+
+[package.metadata.wasm-pack.profile.release.wasm-bindgen]
+# Additional bindgen optimizations
+debug-js-glue = false
+demangle-name-section = true
+keep-debug = false
+omit-default-module-path = false
+
+[package.metadata.wasm-pack.profile.dev]
+# Development settings for faster builds
+wasm-opt = false  # Skip optimization for faster dev builds
