@@ -10,11 +10,15 @@
   },
   "files": [
     "dist/",
+    "pkg/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CLI-README.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:wasm && npm run build:ts",
+    "build:wasm": "cd wasm && ./build.sh",
+    "build:ts": "tsc",
     "dev": "tsx bin/fact.ts",
     "start": "node dist/bin/fact.js",
     "test": "echo \"Tests coming soon\" && exit 0",
