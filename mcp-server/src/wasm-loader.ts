@@ -30,7 +30,7 @@ export class FactWasmLoader {
       });
 
       // Compile WASM module
-      this.wasmModule = await WebAssembly.compile(wasmBuffer);
+      this.wasmModule = await WebAssembly.compile(new Uint8Array(wasmBuffer));
       
       // Instantiate with imports
       this.wasmInstance = await WebAssembly.instantiate(this.wasmModule, {

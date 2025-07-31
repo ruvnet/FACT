@@ -6,8 +6,8 @@
  * enabling AI models to leverage FACT's high-performance template processing.
  */
 
-import { Server } from '@modelcontextprotocol/sdk/dist/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/dist/server/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
   ErrorCode,
@@ -15,14 +15,14 @@ import {
   ListToolsRequestSchema,
   McpError,
   ReadResourceRequestSchema,
-} from '@modelcontextprotocol/sdk/dist/types.js';
+} from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { logger } from './logger.js';
-import { CognitiveTemplateEngine } from './cognitive-engine.js';
+import { CognitiveTemplateEngine } from './cognitive-engine-stub.js';
 import { FactWasmLoader } from './wasm-loader.js';
-import { TemplateRegistry } from './template-registry.js';
-import { CacheManager } from './cache-manager.js';
-import { PerformanceMonitor } from './performance-monitor.js';
+import { TemplateRegistry } from './template-registry-stub.js';
+import { CacheManager } from './cache-manager-stub.js';
+import { PerformanceMonitor } from './performance-monitor-stub.js';
 
 // Tool schemas
 const ProcessTemplateSchema = z.object({
@@ -170,8 +170,22 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
+// Interface for processing result
+interface ProcessingResult {
+  data: any;
+  cached?: boolean;
+}
+
+// Interface for context analysis
+interface ContextAnalysis {
+  complexity: string;
+  patterns: string[];
+  recommendations: string[];
+  suggested_templates: any[];
+}
+
 // Handle tool execution
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const { name, arguments: args } = request.params;
 
   try {
@@ -229,7 +243,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         
         if (params.suggest_templates) {
           const suggestions = await templateRegistry.findMatchingTemplates(analysis);
-          analysis.suggested_templates = suggestions;
+          (analysis as any).suggested_templates = suggestions;
         }
         
         return {
@@ -337,7 +351,7 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
 });
 
 // Handle resource reading
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+server.setRequestHandler(ReadResourceRequestSchema, async (request: any) => {
   const { uri } = request.params;
 
   switch (uri) {
