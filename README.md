@@ -48,11 +48,17 @@ fact-tools process --template analysis-basic --input data.json
 
 ### CLI Tools
 ```bash
-# Install global CLI
+# Install global CLI (fully functional)
 npm install -g fact-cli
 
-# Or use directly
+# Or use directly without installation
 npx fact-cli --help
+
+# Basic usage
+fact-cli init                    # Initialize system
+fact-cli query "your question"   # Ask questions
+fact-cli status                  # Check system health
+fact-cli benchmark               # Test performance
 ```
 
 ## ✨ Key Features
