@@ -1,7 +1,7 @@
 """
 FACT System Package
 
-Fast-Access Cached Tools system for efficient data processing and tool execution.
+Fast Augmented Context Tools system for efficient data processing and tool execution.
 """
 
 __version__ = "1.0.0"

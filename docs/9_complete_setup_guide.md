@@ -2,7 +2,7 @@
 
 ## Overview
 
-This comprehensive guide provides step-by-step instructions for setting up, configuring, and optimizing the FACT (Fast-Access Cached Tools) benchmark system. Follow this guide to get your system running correctly with optimal performance.
+This comprehensive guide provides step-by-step instructions for setting up, configuring, and optimizing the FACT (Fast Augmented Context Tools) benchmark system. Follow this guide to get your system running correctly with optimal performance.
 
 ## Table of Contents
 

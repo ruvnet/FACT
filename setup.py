@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 FACT System - Python Package Setup
-Fast API Cache Technology for AI Applications
+Fast Augmented Context Tools for AI Applications
 """
 
 from setuptools import setup, find_packages
@@ -23,7 +23,7 @@ def get_long_description():
     readme_file = Path(__file__).parent / "README.md"
     if readme_file.exists():
         return readme_file.read_text(encoding="utf-8")
-    return "FACT System - Fast API Cache Technology for AI Applications"
+    return "FACT System - Fast Augmented Context Tools for AI Applications"
 
 # Read requirements
 def get_requirements():
@@ -38,7 +38,7 @@ setup(
     version=get_version(),
     author="FACT Team",
     author_email="team@fact-system.org",
-    description="Fast API Cache Technology for AI Applications",
+    description="Fast Augmented Context Tools for AI Applications",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     url="https://github.com/fact-team/FACT",

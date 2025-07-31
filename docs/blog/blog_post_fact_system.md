@@ -19,7 +19,7 @@
 
 ## Introduction to FACT
 
-**FACT (Fast-Access Cached Tools)** represents a paradigm shift in how organizations interact with financial data. By combining cutting-edge natural language processing with intelligent caching and secure tool execution, FACT eliminates the complexity barrier that traditionally separates business users from their data insights.
+**FACT (Fast Augmented Context Tools)** represents a paradigm shift in how organizations interact with financial data. By combining cutting-edge natural language processing with intelligent caching and secure tool execution, FACT eliminates the complexity barrier that traditionally separates business users from their data insights.
 
 ### The Problem FACT Solves
 

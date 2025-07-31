@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fact-system"
 dynamic = ["version"]
-description = "Fast API Cache Technology for AI Applications"
+description = "Fast Augmented Context Tools for AI Applications"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}

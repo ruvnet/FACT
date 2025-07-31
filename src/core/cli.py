@@ -57,7 +57,7 @@ class FACTCLi:
         self.running = True
         
         # Print welcome message
-        print("🚀 FACT System - Fast-Access Cached Tools")
+        print("🚀 FACT System - Fast Augmented Context Tools")
         print("💡 Ask questions about financial data. Type 'help' for commands or Ctrl+C to exit.")
         print()
         
@@ -283,7 +283,7 @@ async def main() -> None:
     Handles command-line arguments and starts the appropriate mode.
     """
     parser = argparse.ArgumentParser(
-        description="FACT System - Fast-Access Cached Tools",
+        description="FACT System - Fast Augmented Context Tools",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
