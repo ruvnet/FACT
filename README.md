@@ -2,9 +2,12 @@
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/ruvnet/FACT)
 [![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://python.org)
+[![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://rustlang.org)
+[![WASM](https://img.shields.io/badge/WASM-WebAssembly-blue.svg)](https://webassembly.org)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![API](https://img.shields.io/badge/API-RESTful-orange.svg)](docs/5_api_reference.md)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io)
+[![Crates.io](https://img.shields.io/crates/v/fact-tools.svg)](https://crates.io/crates/fact-tools)
 
 A revolutionary approach to LLM data retrieval that replaces RAG with prompt caching and deterministic tool execution under the Model Context Protocol (MCP).
 
@@ -1136,6 +1139,37 @@ FACT/
 - **API Reference**: Developer integration guide
 - **Benchmarking Guide**: Performance testing
 - **Arcade.dev Integration**: Hybrid execution guide
+
+### 📚 Comprehensive Wiki Documentation
+
+FACT includes extensive documentation in the [wiki](wiki/) directory:
+
+#### Core Guides
+- **[Quick Start](wiki/Quick-Start.md)** - Get up and running in 5 minutes
+- **[Installation](wiki/Installation.md)** - Detailed setup instructions
+- **[Core Concepts](wiki/Core-Concepts.md)** - Understanding FACT's architecture
+- **[API Reference](wiki/API-Reference.md)** - Complete API documentation
+- **[CLI Reference](wiki/CLI-Reference.md)** - Command-line interface guide
+
+#### Platform-Specific Guides  
+- **[Rust Guide](wiki/Rust-Guide.md)** - Complete Rust implementation guide
+- **[WASM Integration](wiki/WASM-Integration.md)** - WebAssembly deployment guide
+- **[Python Guide](wiki/Python-Guide.md)** - Python SDK and examples
+- **[JavaScript Guide](wiki/JavaScript-Guide.md)** - Browser and Node.js integration
+
+#### Advanced Topics
+- **[MCP Integration](wiki/MCP-Integration.md)** - Model Context Protocol setup
+- **[Performance Tuning](wiki/Performance-Tuning.md)** - Optimization strategies
+- **[Security](wiki/Security.md)** - Security best practices
+- **[Contributing](wiki/Contributing.md)** - Development guidelines
+- **[Examples](wiki/Examples.md)** - Real-world usage examples
+
+#### Specialized Documentation
+- **[Caching Strategy](wiki/Caching-Strategy.md)** - Advanced caching patterns
+- **[Architecture](wiki/Architecture.md)** - System design deep-dive
+- **[Best Practices](wiki/Best-Practices.md)** - Production deployment guide
+
+**🔗 [Browse Full Wiki →](wiki/)**
 
 ### Community and Support
 
