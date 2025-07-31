@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The FACT (Fast-Access Cached Tools) system is a production-ready financial data analysis platform that combines intelligent caching, secure tool execution, and natural language processing to deliver fast, accurate responses to financial queries.
+The FACT (Fast Augmented Context Tools) system is a production-ready financial data analysis platform that combines intelligent caching, secure tool execution, and natural language processing to deliver fast, accurate responses to financial queries.
 
 ## Purpose and Vision
 

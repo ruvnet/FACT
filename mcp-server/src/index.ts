@@ -6,8 +6,8 @@
  * enabling AI models to leverage FACT's high-performance template processing.
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/dist/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/dist/server/stdio.js';
 import {
   CallToolRequestSchema,
   ErrorCode,
@@ -15,7 +15,7 @@ import {
   ListToolsRequestSchema,
   McpError,
   ReadResourceRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+} from '@modelcontextprotocol/sdk/dist/types.js';
 import { z } from 'zod';
 import { logger } from './logger.js';
 import { CognitiveTemplateEngine } from './cognitive-engine.js';

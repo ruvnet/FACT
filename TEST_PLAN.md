@@ -1,7 +1,7 @@
 # FACT System Comprehensive Test Plan
 
 ## Overview
-This document outlines the comprehensive testing strategy for the FACT (Fast-Access Cached Tools) system, covering all components from core architecture to performance benchmarking.
+This document outlines the comprehensive testing strategy for the FACT (Fast Augmented Context Tools) system, covering all components from core architecture to performance benchmarking.
 
 ## Test Categories
 

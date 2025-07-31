@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The FACT (Fast-Access Cached Tools) system is designed to provide deterministic answers with fresh data and sub-100ms latency by implementing a lean retrieval pattern that skips vector search through token caching in Claude Sonnet-4 and fetching live facts via authenticated tools hosted on Arcade.dev.
+The FACT (Fast Augmented Context Tools) system is designed to provide deterministic answers with fresh data and sub-100ms latency by implementing a lean retrieval pattern that skips vector search through token caching in Claude Sonnet-4 and fetching live facts via authenticated tools hosted on Arcade.dev.
 
 This document provides an overview of the architecture design and guides readers through the detailed architecture documentation.
 
