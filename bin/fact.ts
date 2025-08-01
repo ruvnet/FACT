@@ -165,40 +165,69 @@ async function main() {
       .help();
     })
     
-    .command('cache', 'Manage cache system', {}, () => {
-      yargs.command('clear', 'Clear cache', {
-        all: {
-          type: 'boolean',
-          description: 'Clear all cache data',
-          default: false
-        }
-      }, async (args) => {
-        await cli.handleCacheClear(args);
-      })
-      .command('stats', 'Show cache statistics', {}, async (args) => {
-        await cli.handleCacheStats(args);
-      })
-      .command('optimize', 'Optimize cache performance', {}, async (args) => {
-        await cli.handleCacheOptimize(args);
-      })
-      .demandCommand(1, 'You need to specify a cache subcommand')
-      .help();
+    .command('cache', 'Manage cache system', (yargs) => {
+      return yargs
+        .command('clear', 'Clear cache', {
+          all: {
+            type: 'boolean',
+            description: 'Clear all cache data',
+            default: false
+          }
+        }, async (args) => {
+          await cli.handleCacheClear(args);
+        })
+        .command('stats', 'Show cache statistics', {}, async (args) => {
+          await cli.handleCacheStats(args);
+        })
+        .command('optimize', 'Optimize cache performance', {}, async (args) => {
+          await cli.handleCacheOptimize(args);
+        })
+        .demandCommand(1, 'You need to specify a cache subcommand')
+        .help();
     })
     
-    .command('wasm', 'WASM module management', {}, () => {
-      yargs.command('load', 'Load WASM modules', {
-        module: {
-          type: 'string',
-          description: 'Specific module to load'
-        }
-      }, async (args) => {
-        await cli.handleWasmLoad(args);
-      })
-      .command('info', 'Show WASM module information', {}, async (args) => {
-        await cli.handleWasmInfo(args);
-      })
-      .demandCommand(1, 'You need to specify a wasm subcommand')
-      .help();
+    .command('wasm', 'WASM module management', (yargs) => {
+      return yargs
+        .command('load', 'Load WASM modules', {
+          module: {
+            type: 'string',
+            description: 'Specific module to load'
+          }
+        }, async (args) => {
+          await cli.handleWasmLoad(args);
+        })
+        .command('info', 'Show WASM module information', {}, async (args) => {
+          await cli.handleWasmInfo(args);
+        })
+        .command('benchmark', 'Run WASM-specific benchmarks', {
+          iterations: {
+            type: 'number',
+            description: 'Number of benchmark iterations',
+            default: 1000
+          }
+        }, async (args) => {
+          await cli.handleWasmBenchmark(args);
+        })
+        .demandCommand(1, 'You need to specify a wasm subcommand')
+        .help();
+    })
+    
+    .command('template <template> <context>', 'Process cognitive template', {
+      template: {
+        type: 'string',
+        description: 'Template JSON string or file path'
+      },
+      context: {
+        type: 'string',
+        description: 'Context JSON string or file path'
+      },
+      output: {
+        type: 'string',
+        description: 'Output file path (optional)',
+        alias: 'o'
+      }
+    }, async (args) => {
+      await cli.handleTemplate(args);
     })
     
     .command('doctor', 'Diagnose system health', {

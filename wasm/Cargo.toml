@@ -38,8 +38,13 @@ web-sys = { version = "0.3", features = [
 wasm-bindgen-futures = "0.4"
 futures = "0.3"
 
-# Optional crypto for secure caching (disabled for initial build)
-# getrandom = { version = "0.2", features = ["js"], optional = true }
+# Crypto support for WASM
+getrandom = { version = "0.2", features = ["js"] }
+
+# CLI dependencies (optional)
+clap = { version = "4.0", features = ["derive"], optional = true }
+tokio = { version = "1.0", features = ["full"], optional = true }
+anyhow = { version = "1.0", optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
@@ -70,5 +75,7 @@ default = ["console_error_panic_hook", "performance", "cache"]
 performance = []
 cache = []
 crypto = []
+optimizations = []
+cli = ["dep:clap", "dep:tokio", "dep:anyhow"]
 debug = ["console_error_panic_hook", "web-sys/console"]
 wee_alloc = ["dep:wee_alloc"]

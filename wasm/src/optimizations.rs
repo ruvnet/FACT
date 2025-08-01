@@ -8,7 +8,7 @@
 
 use wasm_bindgen::prelude::*;
 use std::arch::wasm32::*;
-use ahash::AHashMap;
+use rustc_hash::FxHashMap;
 use smallvec::SmallVec;
 
 /// Memory pool for reducing allocations
@@ -172,7 +172,7 @@ impl SIMDProcessor {
 #[wasm_bindgen]
 pub struct OptimizedCache {
     // Use AHashMap for better performance
-    data: AHashMap<u64, CacheEntry>,
+    data: FxHashMap<u64, CacheEntry>,
     // Separate hot/cold storage
     hot_keys: SmallVec<[u64; 64]>,
     access_order: SmallVec<[u64; 256]>,
@@ -193,7 +193,7 @@ impl OptimizedCache {
     #[wasm_bindgen(constructor)]
     pub fn new(max_size: usize) -> OptimizedCache {
         OptimizedCache {
-            data: AHashMap::with_capacity(max_size),
+            data: FxHashMap::default(),
             hot_keys: SmallVec::new(),
             access_order: SmallVec::new(),
             max_size,
@@ -349,7 +349,7 @@ impl BatchProcessor {
 /// Performance metrics collector
 #[wasm_bindgen]
 pub struct PerformanceMetrics {
-    operations: AHashMap<String, MetricData>,
+    operations: FxHashMap<String, MetricData>,
     start_time: f64,
 }
 
@@ -366,7 +366,7 @@ impl PerformanceMetrics {
     #[wasm_bindgen(constructor)]
     pub fn new() -> PerformanceMetrics {
         PerformanceMetrics {
-            operations: AHashMap::new(),
+            operations: FxHashMap::default(),
             start_time: js_sys::Date::now(),
         }
     }

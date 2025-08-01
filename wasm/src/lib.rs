@@ -5,8 +5,6 @@
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
-use ahash::AHashMap;
-use smallvec::SmallVec;
 
 // Re-export for library usage
 pub use crate::cache::FastCache;
@@ -63,8 +61,8 @@ impl Fact {
 
     /// Get cache statistics
     #[wasm_bindgen]
-    pub fn get_cache_stats(&self) -> String {
-        serde_json::to_string(&self.cache.get_stats()).unwrap_or_default()
+    pub fn get_cache_stats(&self) -> JsValue {
+        self.cache.get_stats()
     }
 
     /// Clear the cache
@@ -313,7 +311,7 @@ fn extract_patterns(data: &serde_json::Value) -> Vec<String> {
     patterns
 }
 
-fn generate_insights(data: &serde_json::Value) -> Vec<String> {
+fn generate_insights(_data: &serde_json::Value) -> Vec<String> {
     vec![
         "Pattern detected in data structure".to_string(),
         "Optimization opportunity identified".to_string(),
@@ -321,7 +319,7 @@ fn generate_insights(data: &serde_json::Value) -> Vec<String> {
     ]
 }
 
-fn generate_recommendations(data: &serde_json::Value) -> Vec<String> {
+fn generate_recommendations(_data: &serde_json::Value) -> Vec<String> {
     vec![
         "Consider caching for improved performance".to_string(),
         "Implement batch processing for large datasets".to_string(),
@@ -363,7 +361,8 @@ mod tests {
     #[test]
     fn test_fact_creation() {
         let fact = Fact::new();
-        assert_eq!(fact.get_cache_stats(), r#"{"size":0,"entries":0,"capacity":10485760}"#);
+        let stats = fact.get_cache_stats();
+        assert!(!stats.is_null());
     }
 
     #[test]

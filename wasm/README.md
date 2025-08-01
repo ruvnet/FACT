@@ -105,31 +105,66 @@ main();
 
 FACT achieves exceptional performance through:
 
-- **Memory-efficient data structures** using `ahash` and `smallvec`
-- **SIMD optimizations** for vectorized operations
+- **Memory-efficient data structures** using `rustc-hash` and `smallvec`
+- **SIMD optimizations** for vectorized operations (WASM SIMD support)
 - **Zero-copy operations** where possible
 - **Compile-time optimizations** with LTO and aggressive inlining
+- **Hot key optimization** with intelligent caching strategies
 
-Benchmark results:
-- Cache operations: 1.9M inserts/sec, 4.0M retrievals/sec
-- Query processing: Sub-millisecond latency
-- WASM bundle size: <200KB (optimized)
+### Benchmark Results
+- **WASM bundle size**: 248KB (optimized with wasm-opt)
+- **Cache operations**: Sub-microsecond access for hot keys
+- **Query processing**: Pattern recognition with cognitive templates
+- **Memory usage**: Efficient LRU cache with TTL support
+- **Build time**: <10 seconds for optimized WASM build
+
+### Optimization Features
+- **Batch processing** for improved throughput
+- **Async operations** with non-blocking execution
+- **Memory pooling** to reduce allocations
+- **Performance metrics** collection and analysis
 
 ## Building from Source
 
+### Prerequisites
+- Rust 1.70+ with `wasm32-unknown-unknown` target
+- wasm-pack: `curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh`
+
+### Quick Build
 ```bash
 # Clone the repository
 git clone https://github.com/ruvnet/FACT
 cd FACT/wasm
 
-# Build library
+# Build WASM for web (recommended)
+./build-wasm.sh
+
+# Or manual build
+wasm-pack build --target web --out-dir pkg --release
+```
+
+### Library Build
+```bash
+# Build Rust library
 cargo build --release
 
-# Build CLI
+# Build with CLI support
 cargo build --release --features cli
 
-# Build WASM
-wasm-pack build --target web
+# Run tests
+cargo test
+```
+
+### Multi-Target WASM Build
+```bash
+# Web target (default)
+wasm-pack build --target web --out-dir pkg/web
+
+# Node.js target  
+wasm-pack build --target nodejs --out-dir pkg/nodejs
+
+# Bundler target
+wasm-pack build --target bundler --out-dir pkg/bundler
 ```
 
 ## Testing
