@@ -815,42 +815,138 @@ async function optimizePerformance(params) {
 }
 
 /**
- * Get performance metrics
+ * Get performance metrics with enhanced filtering and formatting
  */
-async function getMetrics() {
+async function getMetrics(params = {}) {
     const startTime = Date.now();
+    const { category = 'all', format = 'json' } = params;
     
     try {
-        const metrics = performanceTracker.getMetrics();
-        
-        // Add WASM-specific metrics if available
-        if (factInstance) {
-            try {
-                metrics.wasm_cache_stats = factInstance.get_cache_stats();
-            } catch (error) {
-                console.error('Failed to get WASM cache stats:', error.message);
-            }
+        const baseMetrics = performanceTracker.getMetrics();
+        let metrics = {};
+
+        // Filter metrics by category
+        switch (category) {
+            case 'performance':
+                metrics = {
+                    total_requests: baseMetrics.totalRequests,
+                    successful_requests: baseMetrics.successfulRequests,
+                    failed_requests: baseMetrics.failedRequests,
+                    average_response_time: baseMetrics.averageResponseTime,
+                    requests_per_second: baseMetrics.requestsPerSecond || 0
+                };
+                break;
+            
+            case 'cache':
+                metrics = {
+                    cache_hits: baseMetrics.cacheHits,
+                    cache_hit_rate: baseMetrics.cacheHitRate,
+                    template_processings: baseMetrics.templateProcessings
+                };
+                
+                if (factInstance) {
+                    try {
+                        metrics.wasm_cache_stats = factInstance.get_cache_stats();
+                    } catch (error) {
+                        metrics.wasm_cache_error = error.message;
+                    }
+                }
+                break;
+            
+            case 'wasm':
+                metrics = {
+                    wasm_enabled: !!factInstance,
+                    wasm_operations: baseMetrics.wasmOperations,
+                    wasm_usage_rate: baseMetrics.wasmUsageRate
+                };
+                
+                if (factInstance) {
+                    try {
+                        metrics.wasm_cache_stats = factInstance.get_cache_stats();
+                        metrics.wasm_optimization_available = true;
+                    } catch (error) {
+                        metrics.wasm_error = error.message;
+                        metrics.wasm_optimization_available = false;
+                    }
+                }
+                break;
+            
+            case 'memory':
+                const memUsage = process.memoryUsage();
+                metrics = {
+                    heap_used_mb: Math.round(memUsage.heapUsed / 1024 / 1024),
+                    heap_total_mb: Math.round(memUsage.heapTotal / 1024 / 1024),
+                    external_mb: Math.round(memUsage.external / 1024 / 1024),
+                    rss_mb: Math.round(memUsage.rss / 1024 / 1024),
+                    heap_utilization: (memUsage.heapUsed / memUsage.heapTotal * 100).toFixed(2) + '%'
+                };
+                break;
+            
+            case 'all':
+            default:
+                metrics = baseMetrics;
+                
+                // Add WASM-specific metrics if available
+                if (factInstance) {
+                    try {
+                        metrics.wasm_cache_stats = factInstance.get_cache_stats();
+                    } catch (error) {
+                        console.error('Failed to get WASM cache stats:', error.message);
+                    }
+                }
+                break;
         }
+        
+        const systemInfo = {
+            node_version: process.version,
+            platform: process.platform,
+            arch: process.arch,
+            memory_usage: process.memoryUsage(),
+            uptime: process.uptime(),
+            wasm_enabled: !!factInstance
+        };
         
         const responseTime = Date.now() - startTime;
         performanceTracker.recordRequest(true, responseTime);
         
-        return {
+        const result = {
             success: true,
             metrics,
-            system_info: {
-                node_version: process.version,
-                platform: process.platform,
-                arch: process.arch,
-                memory_usage: process.memoryUsage(),
-                uptime: process.uptime(),
-                wasm_enabled: !!factInstance
-            },
+            system_info: systemInfo,
             metadata: {
+                category,
+                format,
                 processing_time_ms: responseTime,
                 timestamp: new Date().toISOString()
             }
         };
+
+        // Format output based on format parameter
+        if (format === 'summary') {
+            return {
+                success: true,
+                summary: {
+                    status: baseMetrics.failedRequests === 0 ? 'healthy' : 'degraded',
+                    total_requests: baseMetrics.totalRequests,
+                    success_rate: ((baseMetrics.successfulRequests / Math.max(baseMetrics.totalRequests, 1)) * 100).toFixed(2) + '%',
+                    avg_response_time: baseMetrics.averageResponseTime.toFixed(2) + 'ms',
+                    wasm_enabled: !!factInstance,
+                    uptime: Math.round(process.uptime()) + 's'
+                },
+                metadata: result.metadata
+            };
+        } else if (format === 'detailed') {
+            result.detailed_analysis = {
+                performance_health: baseMetrics.averageResponseTime < 100 ? 'excellent' : 
+                                   baseMetrics.averageResponseTime < 500 ? 'good' : 'needs_attention',
+                cache_efficiency: baseMetrics.cacheHitRate > 0.8 ? 'excellent' : 
+                                 baseMetrics.cacheHitRate > 0.5 ? 'good' : 'needs_improvement',
+                error_rate: (baseMetrics.failedRequests / Math.max(baseMetrics.totalRequests, 1) * 100).toFixed(2) + '%',
+                recommendations: generateRecommendations(baseMetrics)
+            };
+        }
+        
+        return result;
         
     } catch (error) {
         const responseTime = Date.now() - startTime;
@@ -860,11 +956,42 @@ async function getMetrics() {
             success: false,
             error: error.message,
             metadata: {
+                category,
+                format,
                 processing_time_ms: responseTime,
                 timestamp: new Date().toISOString()
             }
         };
     }
+}
+
+/**
+ * Generate performance recommendations based on metrics
+ */
+function generateRecommendations(metrics) {
+    const recommendations = [];
+    
+    if (metrics.averageResponseTime > 500) {
+        recommendations.push('Consider optimizing template processing or enabling WASM acceleration');
+    }
+    
+    if (metrics.cacheHitRate < 0.5) {
+        recommendations.push('Cache hit rate is low - consider increasing cache size or TTL');
+    }
+    
+    if (metrics.failedRequests > metrics.totalRequests * 0.1) {
+        recommendations.push('High error rate detected - check error logs and input validation');
+    }
+    
+    if (!factInstance) {
+        recommendations.push('WASM module not loaded - enable WASM for better performance');
+    }
+    
+    if (metrics.wasmUsageRate && metrics.wasmUsageRate < 0.5) {
+        recommendations.push('Consider using WASM acceleration for more operations');
+    }
+    
+    return recommendations;
 }
 
 /**
@@ -953,10 +1080,24 @@ async function createTemplate(params) {
 }
 
 /**
- * JSON-RPC 2.0 Server Implementation
+ * JSON-RPC 2.0 Server Implementation with Enhanced MCP Protocol Support
  */
 class McpServer {
     constructor() {
+        this.protocolVersion = '2024-11-05';
+        this.serverInfo = {
+            name: 'fact-mcp',
+            version: '1.0.0',
+            description: 'FACT MCP Server with WASM integration and cognitive templates'
+        };
+        
+        this.capabilities = {
+            tools: {},
+            resources: {},
+            prompts: {},
+            logging: {}
+        };
+
         this.tools = {
             'process_template': {
                 name: 'process_template',
@@ -990,6 +1131,17 @@ class McpServer {
                                     type: 'number',
                                     description: 'Request timeout in milliseconds',
                                     default: 30000
+                                },
+                                retry_strategy: {
+                                    type: 'object',
+                                    properties: {
+                                        max_retries: { type: 'number', default: 3 },
+                                        backoff_type: { 
+                                            type: 'string', 
+                                            enum: ['linear', 'exponential', 'fixed'],
+                                            default: 'exponential'
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1091,67 +1243,239 @@ class McpServer {
                 description: 'Get performance metrics and statistics',
                 inputSchema: {
                     type: 'object',
-                    properties: {}
+                    properties: {
+                        category: {
+                            type: 'string',
+                            enum: ['all', 'performance', 'cache', 'wasm', 'memory'],
+                            description: 'Category of metrics to retrieve',
+                            default: 'all'
+                        },
+                        format: {
+                            type: 'string',
+                            enum: ['json', 'summary', 'detailed'],
+                            description: 'Output format for metrics',
+                            default: 'json'
+                        }
+                    }
+                }
+            },
+            'benchmark_performance': {
+                name: 'benchmark_performance',
+                description: 'Run performance benchmarks on FACT operations',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        test_type: {
+                            type: 'string',
+                            enum: ['template_processing', 'cache_operations', 'wasm_functions', 'full_suite'],
+                            description: 'Type of benchmark to run',
+                            default: 'template_processing'
+                        },
+                        iterations: {
+                            type: 'number',
+                            description: 'Number of iterations to run',
+                            default: 100,
+                            minimum: 1,
+                            maximum: 10000
+                        },
+                        payload_size: {
+                            type: 'string',
+                            enum: ['small', 'medium', 'large'],
+                            description: 'Size of test payload',
+                            default: 'medium'
+                        }
+                    }
+                }
+            },
+            'health_check': {
+                name: 'health_check',
+                description: 'Check the health status of FACT MCP server components',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        include_wasm: {
+                            type: 'boolean',
+                            description: 'Include WASM module health check',
+                            default: true
+                        },
+                        include_cache: {
+                            type: 'boolean', 
+                            description: 'Include cache system health check',
+                            default: true
+                        },
+                        verbose: {
+                            type: 'boolean',
+                            description: 'Include detailed health information',
+                            default: false
+                        }
+                    }
                 }
             }
         };
+        
+        // Initialize request tracking
+        this.requestCounter = 0;
+        this.activeRequests = new Map();
+        this.requestHistory = [];
     }
 
     async handleRequest(request) {
+        const requestId = ++this.requestCounter;
+        const startTime = Date.now();
+        
         try {
+            // Track request
+            this.activeRequests.set(requestId, {
+                id: request?.id,
+                method: request?.method,
+                startTime,
+                params: request?.params
+            });
+
             // Validate JSON-RPC 2.0 format
+            if (!request || typeof request !== 'object') {
+                return this.createErrorResponse(null, -32700, 'Parse error');
+            }
+
             if (!request.jsonrpc || request.jsonrpc !== '2.0') {
-                return this.createErrorResponse(null, -32600, 'Invalid Request');
+                return this.createErrorResponse(request?.id || null, -32600, 'Invalid Request');
             }
 
             const { method, params, id } = request;
 
+            // Validate method
+            if (!method || typeof method !== 'string') {
+                return this.createErrorResponse(id, -32600, 'Invalid Request - method required');
+            }
+
+            let response;
             switch (method) {
                 case 'initialize':
-                    return this.createSuccessResponse(id, {
-                        protocolVersion: '2024-11-05',
-                        capabilities: {
-                            tools: {},
-                            resources: {}
-                        },
-                        serverInfo: {
-                            name: 'fact-mcp',
-                            version: '1.0.0',
-                            description: 'FACT MCP Server with WASM integration'
-                        }
-                    });
+                    response = await this.handleInitialize(id, params);
+                    break;
 
                 case 'tools/list':
-                    return this.createSuccessResponse(id, {
-                        tools: Object.values(this.tools)
-                    });
+                    response = await this.handleToolsList(id, params);
+                    break;
 
                 case 'tools/call':
-                    return await this.handleToolCall(id, params);
+                    response = await this.handleToolCall(id, params);
+                    break;
 
                 case 'resources/list':
-                    return this.createSuccessResponse(id, {
-                        resources: resourceManager.listResources()
-                    });
+                    response = await this.handleResourcesList(id, params);
+                    break;
 
                 case 'resources/read':
-                    return await this.handleResourceRead(id, params);
+                    response = await this.handleResourceRead(id, params);
+                    break;
+
+                case 'prompts/list':
+                    response = await this.handlePromptsList(id, params);
+                    break;
+
+                case 'prompts/get':
+                    response = await this.handlePromptsGet(id, params);
+                    break;
+
+                case 'logging/setLevel':
+                    response = await this.handleLoggingSetLevel(id, params);
+                    break;
 
                 case 'notifications/initialized':
+                    response = await this.handleNotificationInitialized(id, params);
+                    break;
+
                 case 'ping':
-                    return this.createSuccessResponse(id, {});
+                    response = this.createSuccessResponse(id, { 
+                        pong: true, 
+                        timestamp: new Date().toISOString(),
+                        uptime: Date.now() - startTime
+                    });
+                    break;
 
                 default:
-                    return this.createErrorResponse(id, -32601, 'Method not found');
+                    response = this.createErrorResponse(id, -32601, `Method not found: ${method}`);
             }
+
+            // Record successful request
+            this.recordRequest(requestId, true, Date.now() - startTime);
+            return response;
         } catch (error) {
             console.error('Request handling error:', error);
-            return this.createErrorResponse(request?.id || null, -32603, 'Internal error');
+            this.recordRequest(requestId, false, Date.now() - startTime, error);
+            return this.createErrorResponse(request?.id || null, -32603, 'Internal error', {
+                message: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
+        } finally {
+            // Clean up request tracking
+            this.activeRequests.delete(requestId);
         }
     }
 
+    // Enhanced MCP Protocol Handlers
+
+    async handleInitialize(id, params) {
+        return this.createSuccessResponse(id, {
+            protocolVersion: this.protocolVersion,
+            capabilities: this.capabilities,
+            serverInfo: this.serverInfo,
+            instructions: 'FACT MCP Server provides cognitive template processing with WASM acceleration'
+        });
+    }
+
+    async handleToolsList(id, params) {
+        return this.createSuccessResponse(id, {
+            tools: Object.values(this.tools)
+        });
+    }
+
+    async handleResourcesList(id, params) {
+        return this.createSuccessResponse(id, {
+            resources: resourceManager.listResources()
+        });
+    }
+
+    async handlePromptsList(id, params) {
+        // FACT doesn't currently support prompts, but we provide the handler for completeness
+        return this.createSuccessResponse(id, {
+            prompts: []
+        });
+    }
+
+    async handlePromptsGet(id, params) {
+        return this.createErrorResponse(id, -32601, 'Prompts not supported');
+    }
+
+    async handleLoggingSetLevel(id, params) {
+        const { level } = params || {};
+        
+        if (!['error', 'warn', 'info', 'debug'].includes(level)) {
+            return this.createErrorResponse(id, -32602, 'Invalid logging level');
+        }
+
+        // Note: In a real implementation, you'd set the actual logging level
+        console.error(`Logging level set to: ${level}`);
+        
+        return this.createSuccessResponse(id, {
+            level,
+            message: `Logging level set to ${level}`
+        });
+    }
+
+    async handleNotificationInitialized(id, params) {
+        console.error('Client initialized notification received');
+        return this.createSuccessResponse(id, {});
+    }
+
     async handleToolCall(id, params) {
-        const { name, arguments: args } = params;
+        if (!params || !params.name) {
+            return this.createErrorResponse(id, -32602, 'Invalid params - name required');
+        }
+
+        const { name, arguments: args = {} } = params;
+        const toolStartTime = Date.now();
 
         try {
             let result;
@@ -1172,20 +1496,40 @@ class McpServer {
                     result = await createTemplate(args);
                     break;
                 case 'get_metrics':
-                    result = await getMetrics();
+                    result = await getMetrics(args);
+                    break;
+                case 'benchmark_performance':
+                    result = await this.benchmarkPerformance(args);
+                    break;
+                case 'health_check':
+                    result = await this.healthCheck(args);
                     break;
                 default:
                     return this.createErrorResponse(id, -32601, `Unknown tool: ${name}`);
             }
 
+            const executionTime = Date.now() - toolStartTime;
+            
             return this.createSuccessResponse(id, {
                 content: [{
                     type: 'text',
-                    text: JSON.stringify(result, null, 2)
+                    text: JSON.stringify({
+                        ...result,
+                        tool_execution_time_ms: executionTime,
+                        server_info: {
+                            wasm_enabled: !!factInstance,
+                            request_id: id
+                        }
+                    }, null, 2)
                 }]
             });
         } catch (error) {
-            return this.createErrorResponse(id, -32603, `Tool execution failed: ${error.message}`);
+            console.error(`Tool execution error for ${name}:`, error);
+            return this.createErrorResponse(id, -32603, `Tool execution failed: ${error.message}`, {
+                tool: name,
+                args: Object.keys(args),
+                execution_time_ms: Date.now() - toolStartTime
+            });
         }
     }
 
@@ -1218,70 +1562,408 @@ class McpServer {
         const response = {
             jsonrpc: '2.0',
             id,
-            error: { code, message }
+            error: { 
+                code, 
+                message,
+                timestamp: new Date().toISOString()
+            }
         };
         if (data) {
             response.error.data = data;
         }
         return response;
     }
+
+    // New tool implementations
+    async benchmarkPerformance(params) {
+        const { test_type = 'template_processing', iterations = 100, payload_size = 'medium' } = params;
+        const startTime = Date.now();
+        
+        try {
+            const results = {
+                test_type,
+                iterations,
+                payload_size,
+                results: []
+            };
+
+            // Create test payload based on size
+            const payloads = {
+                small: { test: 'data', value: 42 },
+                medium: { 
+                    test: 'data', 
+                    values: Array.from({length: 100}, (_, i) => i),
+                    metadata: { created: new Date().toISOString() }
+                },
+                large: {
+                    test: 'data',
+                    values: Array.from({length: 1000}, (_, i) => ({ id: i, data: `test_${i}` })),
+                    metadata: { created: new Date().toISOString(), size: 'large' }
+                }
+            };
+
+            const testPayload = payloads[payload_size];
+
+            // Run benchmarks based on test type
+            for (let i = 0; i < iterations; i++) {
+                const iterationStart = Date.now();
+                
+                switch (test_type) {
+                    case 'template_processing':
+                        await processTemplate({
+                            template_id: 'data-analysis',
+                            context: testPayload
+                        });
+                        break;
+                    case 'cache_operations':
+                        if (factInstance) {
+                            factInstance.process(JSON.stringify(testPayload), true);
+                        }
+                        break;
+                    case 'wasm_functions':
+                        if (factInstance) {
+                            factInstance.get_cache_stats();
+                            factInstance.optimize('standard');
+                        }
+                        break;
+                    case 'full_suite':
+                        await processTemplate({
+                            template_id: 'data-analysis', 
+                            context: testPayload
+                        });
+                        if (factInstance) {
+                            factInstance.process(JSON.stringify(testPayload), true);
+                        }
+                        break;
+                }
+                
+                results.results.push({
+                    iteration: i + 1,
+                    duration_ms: Date.now() - iterationStart
+                });
+            }
+
+            // Calculate statistics
+            const durations = results.results.map(r => r.duration_ms);
+            const totalTime = Date.now() - startTime;
+            
+            return {
+                success: true,
+                benchmark: {
+                    ...results,
+                    statistics: {
+                        total_time_ms: totalTime,
+                        average_ms: durations.reduce((a, b) => a + b, 0) / durations.length,
+                        min_ms: Math.min(...durations),
+                        max_ms: Math.max(...durations),
+                        median_ms: durations.sort((a, b) => a - b)[Math.floor(durations.length / 2)],
+                        operations_per_second: (iterations / totalTime) * 1000
+                    }
+                },
+                metadata: {
+                    wasm_enabled: !!factInstance,
+                    timestamp: new Date().toISOString()
+                }
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                metadata: {
+                    processing_time_ms: Date.now() - startTime,
+                    timestamp: new Date().toISOString()
+                }
+            };
+        }
+    }
+
+    async healthCheck(params) {
+        const { include_wasm = true, include_cache = true, verbose = false } = params;
+        const startTime = Date.now();
+        
+        try {
+            const health = {
+                status: 'healthy',
+                checks: {},
+                overall_health: 'green'
+            };
+
+            // Basic server health
+            health.checks.server = {
+                status: 'healthy',
+                uptime_ms: Date.now() - startTime,
+                active_requests: this.activeRequests.size,
+                total_requests: this.requestCounter
+            };
+
+            // WASM module health
+            if (include_wasm) {
+                health.checks.wasm = {
+                    status: factInstance ? 'healthy' : 'degraded',
+                    module_loaded: !!factInstance,
+                    fallback_mode: !factInstance
+                };
+
+                if (factInstance && verbose) {
+                    try {
+                        const stats = factInstance.get_cache_stats();
+                        health.checks.wasm.cache_stats = stats;
+                    } catch (error) {
+                        health.checks.wasm.cache_error = error.message;
+                    }
+                }
+            }
+
+            // Cache system health  
+            if (include_cache) {
+                health.checks.cache = {
+                    status: 'healthy',
+                    templates_loaded: Object.keys(COGNITIVE_TEMPLATES).length,
+                    resources_available: resourceManager.listResources().length
+                };
+            }
+
+            // Memory health
+            const memUsage = process.memoryUsage();
+            health.checks.memory = {
+                status: memUsage.heapUsed < (memUsage.heapTotal * 0.9) ? 'healthy' : 'warning',
+                heap_used_mb: Math.round(memUsage.heapUsed / 1024 / 1024),
+                heap_total_mb: Math.round(memUsage.heapTotal / 1024 / 1024),
+                external_mb: Math.round(memUsage.external / 1024 / 1024)
+            };
+
+            // Determine overall health
+            const statuses = Object.values(health.checks).map(check => check.status);
+            if (statuses.includes('unhealthy')) {
+                health.overall_health = 'red';
+                health.status = 'unhealthy';
+            } else if (statuses.includes('degraded') || statuses.includes('warning')) {
+                health.overall_health = 'yellow';
+                health.status = 'degraded';
+            }
+
+            return {
+                success: true,
+                health,
+                metadata: {
+                    check_duration_ms: Date.now() - startTime,
+                    timestamp: new Date().toISOString()
+                }
+            };
+        } catch (error) {
+            return {
+                success: false,
+                health: {
+                    status: 'unhealthy',
+                    overall_health: 'red',
+                    error: error.message
+                },
+                metadata: {
+                    check_duration_ms: Date.now() - startTime,
+                    timestamp: new Date().toISOString()
+                }
+            };
+        }
+    }
+
+    // Request tracking methods
+    recordRequest(requestId, success, duration, error = null) {
+        const record = {
+            requestId,
+            success,
+            duration,
+            timestamp: new Date().toISOString(),
+            error: error ? error.message : null
+        };
+
+        this.requestHistory.push(record);
+        
+        // Keep only last 1000 requests
+        if (this.requestHistory.length > 1000) {
+            this.requestHistory.shift();
+        }
+
+        performanceTracker.recordRequest(success, duration, false, !!factInstance);
+    }
 }
 
 /**
- * Main server setup and stdio transport
+ * Enhanced main server setup with improved stdio transport and error handling
  */
 async function main() {
-    console.error('Starting FACT MCP Server...');
+    console.error('🚀 Starting FACT MCP Server...');
+    console.error(`📍 Node.js version: ${process.version}`);
+    console.error(`🖥️  Platform: ${process.platform} ${process.arch}`);
     
-    // Initialize WASM
-    const wasmInitialized = await initializeWasm();
-    console.error(`WASM initialization: ${wasmInitialized ? 'SUCCESS' : 'FALLBACK TO JS'}`);
+    // Initialize WASM with retry logic
+    let wasmInitialized = false;
+    let wasmAttempts = 0;
+    const maxWasmAttempts = 3;
+    
+    while (!wasmInitialized && wasmAttempts < maxWasmAttempts) {
+        wasmAttempts++;
+        console.error(`🔄 WASM initialization attempt ${wasmAttempts}/${maxWasmAttempts}...`);
+        
+        try {
+            wasmInitialized = await initializeWasm();
+            if (wasmInitialized) {
+                console.error('✅ WASM module initialized successfully');
+                break;
+            }
+        } catch (error) {
+            console.error(`❌ WASM initialization attempt ${wasmAttempts} failed:`, error.message);
+        }
+        
+        if (!wasmInitialized && wasmAttempts < maxWasmAttempts) {
+            console.error('⏳ Retrying WASM initialization in 1 second...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+    
+    if (!wasmInitialized) {
+        console.error('⚠️  WASM initialization failed - running in JavaScript fallback mode');
+        console.error('📝 Note: Performance may be reduced without WASM acceleration');
+    }
     
     const server = new McpServer();
+    
+    // Enhanced readline interface with better error handling
     const rl = createInterface({
         input: process.stdin,
         output: process.stdout,
-        terminal: false
+        terminal: false,
+        crlfDelay: Infinity // Handle Windows line endings
     });
 
-    console.error('FACT MCP Server ready on stdio transport');
+    console.error('🎯 FACT MCP Server ready on stdio transport');
+    console.error('📊 Available tools:', Object.keys(server.tools).length);
+    console.error('🔧 Available templates:', Object.keys(COGNITIVE_TEMPLATES).length);
+    console.error('📚 Available resources:', resourceManager.listResources().length);
 
+    // Request processing with enhanced error handling
     rl.on('line', async (line) => {
         try {
-            const request = JSON.parse(line);
-            const response = await server.handleRequest(request);
-            
-            if (response) {
-                console.log(JSON.stringify(response));
+            // Skip empty lines
+            if (!line.trim()) {
+                return;
             }
+            
+            let request;
+            try {
+                request = JSON.parse(line);
+            } catch (parseError) {
+                console.error('Parse error for input:', line.substring(0, 100) + (line.length > 100 ? '...' : ''));
+                const errorResponse = {
+                    jsonrpc: '2.0',
+                    id: null,
+                    error: {
+                        code: -32700,
+                        message: 'Parse error',
+                        data: {
+                            input_length: line.length,
+                            error: parseError.message
+                        }
+                    }
+                };
+                console.log(JSON.stringify(errorResponse));
+                return;
+            }
+            
+            // Process request with timeout
+            const timeout = 30000; // 30 seconds
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Request timeout')), timeout);
+            });
+            
+            try {
+                const response = await Promise.race([
+                    server.handleRequest(request),
+                    timeoutPromise
+                ]);
+                
+                if (response) {
+                    console.log(JSON.stringify(response));
+                }
+            } catch (timeoutError) {
+                console.error('Request timeout for method:', request?.method);
+                const timeoutResponse = {
+                    jsonrpc: '2.0',
+                    id: request?.id || null,
+                    error: {
+                        code: -32603,
+                        message: 'Request timeout',
+                        data: {
+                            method: request?.method,
+                            timeout_ms: timeout
+                        }
+                    }
+                };
+                console.log(JSON.stringify(timeoutResponse));
+            }
+            
         } catch (error) {
-            console.error('Failed to parse request:', error.message);
+            console.error('Unexpected error processing request:', error);
             const errorResponse = {
                 jsonrpc: '2.0',
                 id: null,
                 error: {
-                    code: -32700,
-                    message: 'Parse error'
+                    code: -32603,
+                    message: 'Internal error',
+                    data: {
+                        error: error.message,
+                        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+                    }
                 }
             };
             console.log(JSON.stringify(errorResponse));
         }
     });
 
+    rl.on('error', (error) => {
+        console.error('Readline error:', error);
+    });
+
     rl.on('close', () => {
-        console.error('FACT MCP Server shutting down...');
+        console.error('📈 Final server statistics:');
+        console.error(`   Total requests processed: ${server.requestCounter}`);
+        console.error(`   Active requests: ${server.activeRequests.size}`);
+        console.error(`   Request history: ${server.requestHistory.length} entries`);
+        console.error('👋 FACT MCP Server shutting down...');
         process.exit(0);
     });
 
-    // Handle process termination
-    process.on('SIGINT', () => {
-        console.error('Received SIGINT, shutting down gracefully...');
+    // Enhanced process termination handling
+    const gracefulShutdown = (signal) => {
+        console.error(`📨 Received ${signal}, initiating graceful shutdown...`);
+        
+        // Give active requests time to complete
+        if (server.activeRequests.size > 0) {
+            console.error(`⏳ Waiting for ${server.activeRequests.size} active requests to complete...`);
+            setTimeout(() => {
+                console.error('⏰ Shutdown timeout reached, forcing exit...');
+                process.exit(1);
+            }, 5000);
+        }
+        
         rl.close();
-    });
+    };
 
-    process.on('SIGTERM', () => {
-        console.error('Received SIGTERM, shutting down gracefully...');
-        rl.close();
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error) => {
+        console.error('💥 Uncaught exception:', error);
+        console.error('📊 Server state:', {
+            activeRequests: server.activeRequests.size,
+            totalRequests: server.requestCounter,
+            wasmEnabled: !!factInstance
+        });
+        process.exit(1);
+    });
+    
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('🚫 Unhandled rejection at:', promise, 'reason:', reason);
     });
 }
 

@@ -1,9 +1,15 @@
 [package]
 name = "fact-wasm-core"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-description = "High-performance WASM core for FACT system"
-authors = ["FACT Team"]
+description = "FACT WASM Core - High-performance WebAssembly cognitive processing engine with advanced caching and template optimization"
+authors = ["FACT Team <info@ruvnet.com>"]
+documentation = "https://docs.rs/fact-wasm-core"
+homepage = "https://github.com/ruvnet/FACT"
+repository = "https://github.com/ruvnet/FACT"
+readme = "README.md"
+keywords = ["wasm", "cognitive", "templates", "cache", "performance"]
+categories = ["wasm", "algorithms", "caching", "web-programming"]
 license = "MIT"
 
 [lib]
@@ -22,6 +28,9 @@ smallvec = "1.13"
 tinyvec = { version = "1.6", features = ["alloc"] }
 rustc-hash = "1.1"
 
+# Additional dependencies for enhanced functionality
+# ahash removed - not needed and causes WASM build issues
+
 # WASM-specific optimizations
 console_error_panic_hook = { version = "0.1", optional = true }
 web-sys = { version = "0.3", features = [
@@ -38,8 +47,7 @@ web-sys = { version = "0.3", features = [
 wasm-bindgen-futures = "0.4"
 futures = "0.3"
 
-# Crypto support for WASM
-getrandom = { version = "0.2", features = ["js"] }
+# Crypto support for WASM - removed getrandom due to WASM incompatibility
 
 # CLI dependencies (optional)
 clap = { version = "4.0", features = ["derive"], optional = true }

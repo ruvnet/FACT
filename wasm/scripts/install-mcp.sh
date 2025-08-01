@@ -1,120 +1,177 @@
 #!/bin/bash
-
-# FACT MCP Server Installation Script
-# Installs and configures the FACT MCP server for Claude Code
+# FACT MCP Server Installation Script for Claude Code
+# This script installs the FACT MCP server and configures it for use with Claude Code
 
 set -e
 
-echo "🚀 FACT MCP Server Installation"
-echo "================================="
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Check Node.js version
+print_status() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+print_step() {
+    echo -e "${BLUE}[STEP]${NC} $1"
+}
+
+echo "🚀 FACT MCP Server Installation"
+echo "================================"
+
+# Check if Node.js is installed
+print_step "Checking Node.js installation..."
 if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js >= 16.0.0"
+    print_error "Node.js is not installed. Please install Node.js 16+ first."
+    echo "  Visit: https://nodejs.org/"
     exit 1
 fi
 
 NODE_VERSION=$(node --version | cut -d'v' -f2)
-REQUIRED_VERSION="16.0.0"
+print_status "Node.js version: $NODE_VERSION"
 
-if ! npx semver -r ">=$REQUIRED_VERSION" "$NODE_VERSION" &> /dev/null; then
-    echo "❌ Node.js version $NODE_VERSION is too old. Please upgrade to >= $REQUIRED_VERSION"
+# Check if npm is installed
+if ! command -v npm &> /dev/null; then
+    print_error "npm is not installed. Please install npm first."
     exit 1
 fi
 
-echo "✅ Node.js version: $NODE_VERSION"
+NPM_VERSION=$(npm --version)
+print_status "npm version: $NPM_VERSION"
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WASM_DIR="$(dirname "$SCRIPT_DIR")"
+# Get the directory of this script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+WASM_DIR="$( dirname "$SCRIPT_DIR" )"
+MCP_SERVER_PATH="$WASM_DIR/src/mcp-server.js"
 
-# Navigate to the WASM directory
-cd "$WASM_DIR"
+print_step "Setting up FACT MCP Server..."
+print_status "WASM directory: $WASM_DIR"
+print_status "MCP server path: $MCP_SERVER_PATH"
 
-echo "📁 Working directory: $WASM_DIR"
-
-# Build WASM module if needed
-if [ ! -d "pkg" ] || [ ! -f "pkg/fact_wasm_core.js" ]; then
-    echo "🔧 Building WASM module..."
-    npm run build:wasm
-else
-    echo "✅ WASM module already built"
+# Verify MCP server exists
+if [ ! -f "$MCP_SERVER_PATH" ]; then
+    print_error "MCP server not found at: $MCP_SERVER_PATH"
+    exit 1
 fi
 
 # Make MCP server executable
-echo "🔧 Making MCP server executable..."
-chmod +x src/mcp-server.js
+chmod +x "$MCP_SERVER_PATH"
+print_status "Made MCP server executable"
+
+# Install dependencies if package.json exists
+if [ -f "$WASM_DIR/package.json" ]; then
+    print_step "Installing dependencies..."
+    cd "$WASM_DIR"
+    npm install
+    print_status "Dependencies installed"
+fi
+
+# Build WASM if build script exists and pkg directory doesn't exist
+if [ -f "$WASM_DIR/build-wasm.sh" ] && [ ! -d "$WASM_DIR/pkg" ]; then
+    print_step "Building WASM modules..."
+    cd "$WASM_DIR"
+    chmod +x build-wasm.sh
+    ./build-wasm.sh || {
+        print_warning "WASM build failed - server will run in JavaScript fallback mode"
+    }
+fi
 
 # Test the MCP server
-echo "🧪 Testing MCP server..."
-if timeout 5s node src/mcp-server.js < /dev/null 2>/dev/null; then
-    echo "✅ MCP server test passed"
+print_step "Testing MCP server..."
+cd "$WASM_DIR"
+
+# Create a simple test
+TEST_OUTPUT=$(timeout 10s node -e "
+const { spawn } = require('child_process');
+const server = spawn('node', ['$MCP_SERVER_PATH'], { stdio: ['pipe', 'pipe', 'pipe'] });
+let initialized = false;
+
+server.stderr.on('data', (data) => {
+    if (data.toString().includes('ready on stdio transport')) {
+        initialized = true;
+        server.kill('SIGTERM');
+    }
+});
+
+server.on('close', (code) => {
+    console.log(initialized ? 'SUCCESS' : 'FAILED');
+    process.exit(initialized ? 0 : 1);
+});
+
+setTimeout(() => {
+    server.kill('SIGTERM');
+    console.log('TIMEOUT');
+    process.exit(1);
+}, 8000);
+" 2>/dev/null) || TEST_OUTPUT="FAILED"
+
+if [ "$TEST_OUTPUT" = "SUCCESS" ]; then
+    print_status "✅ MCP server test passed"
 else
-    echo "⚠️  MCP server test had issues (this may be normal for stdio transport)"
+    print_warning "⚠️ MCP server test failed - but server may still work"
 fi
 
-# Check if Claude Code is available
-if command -v claude &> /dev/null; then
-    echo "✅ Claude Code found"
-    
-    # Remove existing server if it exists
-    if claude mcp list | grep -q "fact-mcp"; then
-        echo "🔄 Removing existing fact-mcp server..."
-        claude mcp remove fact-mcp || true
-    fi
-    
-    # Add the MCP server to Claude Code
-    echo "📋 Adding FACT MCP server to Claude Code..."
-    
-    # Get absolute path to the MCP server
-    MCP_SERVER_PATH="$(realpath src/mcp-server.js)"
-    
-    if claude mcp add fact-mcp node "$MCP_SERVER_PATH"; then
-        echo "✅ FACT MCP server added successfully!"
-        
-        # List MCP servers to confirm
-        echo ""
-        echo "📋 Current MCP servers:"
-        claude mcp list
-        
-        echo ""
-        echo "🎉 Installation complete!"
-        echo ""
-        echo "Available MCP tools in Claude Code:"
-        echo "  • process_template    - Process cognitive templates with context"
-        echo "  • list_templates      - List available templates"
-        echo "  • analyze_context     - Analyze context and suggest templates"
-        echo "  • optimize_performance - Optimize cache, memory, or processing"
-        echo "  • get_metrics         - Get performance metrics"
-        echo "  • create_template     - Create custom templates"
-        echo ""
-        echo "Available resources:"
-        echo "  • template://*        - Template definitions"
-        echo "  • metrics://performance - Performance metrics"
-        echo "  • system://status     - System status"
-        echo ""
-        echo "Try using these tools in Claude Code to process cognitive templates!"
-        
-    else
-        echo "❌ Failed to add MCP server to Claude Code"
-        exit 1
-    fi
-    
-else
-    echo "⚠️  Claude Code not found. Please install Claude Code first:"
-    echo "   npm install -g @anthropic/claude-code"
-    echo ""
-    echo "Then run this script again, or manually add the server:"
-    echo "   claude mcp add fact-mcp node $(realpath src/mcp-server.js)"
-fi
+# Provide installation instructions
+echo ""
+print_step "Installation Complete!"
+echo "======================================"
 
 echo ""
-echo "📖 Documentation:"
-echo "   • README-MCP.md - Complete documentation"
-echo "   • tests/mcp_server_tests.js - Test suite"
+echo "📋 Next Steps:"
 echo ""
-echo "🔧 Useful commands:"
-echo "   • npm run start:mcp     - Start MCP server manually"
-echo "   • npm run dev:mcp       - Start with debugging"
-echo "   • npm run test:mcp      - Test server functionality"
-echo "   • node tests/mcp_server_tests.js - Run comprehensive tests"
+echo "1. Add FACT MCP server to Claude Code:"
+echo "   ${GREEN}claude mcp add fact-mcp node \"$MCP_SERVER_PATH\"${NC}"
+echo ""
+echo "2. Verify the installation:"
+echo "   ${GREEN}claude mcp list${NC}"
+echo ""
+echo "3. Test the server with Claude Code:"
+echo "   - Open Claude Code"
+echo "   - Try using FACT MCP tools in your conversation"
+echo ""
+echo "📖 Available Tools:"
+echo "   • process_template     - Process cognitive templates"
+echo "   • list_templates       - List available templates"
+echo "   • analyze_context      - Analyze context and suggest templates"
+echo "   • get_metrics          - Get performance metrics"
+echo "   • health_check         - Check server health"
+echo "   • benchmark_performance - Run performance benchmarks"
+echo "   • optimize_performance - Optimize server performance"
+echo "   • create_template      - Create custom templates"
+echo ""
+echo "🔧 Configuration:"
+echo "   Server path: $MCP_SERVER_PATH"
+echo "   WASM enabled: $([ -d "$WASM_DIR/pkg" ] && echo "Yes" || echo "No (fallback mode)")"
+echo "   Transport: stdio"
+echo ""
+echo "📚 Documentation:"
+echo "   README: $WASM_DIR/README-MCP.md"
+echo "   Examples: $WASM_DIR/tests/"
+echo ""
+echo "✅ FACT MCP Server is ready to use!"
+
+# Create a quick test command
+cat > "$WASM_DIR/test-mcp.sh" << 'EOF'
+#!/bin/bash
+# Quick MCP server test
+echo "🧪 Testing FACT MCP Server..."
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+node "$SCRIPT_DIR/test-mcp-standalone.mjs"
+EOF
+
+chmod +x "$WASM_DIR/test-mcp.sh"
+print_status "Created test script: $WASM_DIR/test-mcp.sh"
+
+echo ""
+print_status "🎯 Run '$WASM_DIR/test-mcp.sh' to test the server anytime"

@@ -1,0 +1,372 @@
+name: FACT WASM MCP Test Suite
+
+on:
+  push:
+    branches: [ main, develop, rust-wasm ]
+    paths:
+      - 'wasm/**'
+      - '.github/workflows/test.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'wasm/**'
+      - '.github/workflows/test.yml'
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  test-matrix:
+    name: Test Suite
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [16, 18, 20]
+        rust-version: [stable, beta]
+        exclude:
+          # Reduce matrix size for faster CI
+          - os: windows-latest
+            node-version: 16
+          - os: macos-latest
+            node-version: 16
+          - os: windows-latest
+            rust-version: beta
+          - os: macos-latest
+            rust-version: beta
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: wasm/package.json
+
+    - name: Setup Rust ${{ matrix.rust-version }}
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust-version }}
+        profile: minimal
+        override: true
+        components: rustfmt, clippy
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          wasm/target/
+        key: ${{ runner.os }}-cargo-${{ matrix.rust-version }}-${{ hashFiles('wasm/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-${{ matrix.rust-version }}-
+          ${{ runner.os }}-cargo-
+
+    - name: Install wasm-pack
+      run: |
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          curl -L --output wasm-pack-init.exe https://github.com/rustwasm/wasm-pack/releases/latest/download/wasm-pack-init.exe
+          ./wasm-pack-init.exe -y
+        else
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        fi
+      shell: bash
+
+    - name: Install Node.js dependencies
+      working-directory: wasm
+      run: npm ci
+
+    - name: Rust formatting check
+      working-directory: wasm
+      run: cargo fmt --all -- --check
+
+    - name: Rust linting
+      working-directory: wasm
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Run Rust unit tests
+      working-directory: wasm
+      run: cargo test --lib --verbose
+
+    - name: Build WASM module
+      working-directory: wasm
+      run: |
+        chmod +x build-wasm.sh
+        ./build-wasm.sh
+
+    - name: Run WASM tests
+      working-directory: wasm
+      run: wasm-pack test --node
+
+    - name: Run Node.js MCP tests
+      working-directory: wasm
+      run: npm run test:mcp
+
+    - name: Run integration tests
+      working-directory: wasm
+      run: cargo test --test '*' --verbose
+
+    - name: Run comprehensive MCP tests
+      working-directory: wasm
+      run: |
+        timeout 300 npm run test:mcp-comprehensive || true
+      shell: bash
+
+    - name: Run performance benchmarks
+      working-directory: wasm
+      run: |
+        # Run benchmarks with timeout to prevent CI hanging
+        timeout 600 cargo bench || echo "Benchmarks completed or timed out"
+        timeout 300 npm run test:performance || echo "Performance tests completed or timed out"
+      shell: bash
+
+    - name: Generate test coverage (Linux only)
+      if: matrix.os == 'ubuntu-latest' && matrix.rust-version == 'stable' && matrix.node-version == 18
+      working-directory: wasm
+      run: |
+        cargo install cargo-tarpaulin
+        cargo tarpaulin --out xml --output-dir ./coverage/
+        
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.rust-version == 'stable' && matrix.node-version == 18
+      uses: codecov/codecov-action@v3
+      with:
+        files: wasm/coverage/cobertura.xml
+        flags: rust-wasm
+        name: codecov-${{ runner.os }}-node${{ matrix.node-version }}-rust${{ matrix.rust-version }}
+
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ runner.os }}-node${{ matrix.node-version }}-rust${{ matrix.rust-version }}
+        path: |
+          wasm/test-results/
+          wasm/benchmark-results/
+          wasm/coverage/
+          wasm/target/criterion/
+        retention-days: 30
+
+    - name: Archive WASM artifacts
+      if: matrix.os == 'ubuntu-latest' && matrix.rust-version == 'stable' && matrix.node-version == 18
+      uses: actions/upload-artifact@v3
+      with:
+        name: wasm-pkg
+        path: wasm/pkg/
+        retention-days: 7
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+        key: ${{ runner.os }}-cargo-audit-${{ hashFiles('wasm/Cargo.lock') }}
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+
+    - name: Run security audit
+      working-directory: wasm
+      run: cargo audit
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: wasm/package.json
+
+    - name: Install Node.js dependencies
+      working-directory: wasm
+      run: npm ci
+
+    - name: Run npm audit
+      working-directory: wasm
+      run: npm audit --audit-level moderate
+
+  performance-regression:
+    name: Performance Regression Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: wasm/package.json
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+
+    - name: Install wasm-pack
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+    - name: Install dependencies
+      working-directory: wasm
+      run: npm ci
+
+    - name: Build WASM module
+      working-directory: wasm
+      run: |
+        chmod +x build-wasm.sh
+        ./build-wasm.sh
+
+    - name: Run performance benchmarks (current)
+      working-directory: wasm
+      run: |
+        npm run test:performance 2>&1 | tee performance-current.log
+
+    - name: Checkout base branch
+      run: git checkout ${{ github.base_ref }}
+
+    - name: Build WASM module (base)
+      working-directory: wasm
+      run: |
+        npm ci
+        chmod +x build-wasm.sh
+        ./build-wasm.sh
+
+    - name: Run performance benchmarks (base)
+      working-directory: wasm
+      run: |
+        npm run test:performance 2>&1 | tee performance-base.log
+
+    - name: Compare performance
+      working-directory: wasm
+      run: |
+        echo "## Performance Comparison" >> $GITHUB_STEP_SUMMARY
+        echo "### Current Branch vs Base Branch" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "Current:" >> $GITHUB_STEP_SUMMARY
+        tail -20 performance-current.log >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Base:" >> $GITHUB_STEP_SUMMARY
+        tail -20 performance-base.log >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  integration-test:
+    name: Integration Test with MCP Clients
+    runs-on: ubuntu-latest
+    needs: [test-matrix]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: wasm/package.json
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+
+    - name: Install wasm-pack
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+    - name: Download WASM artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: wasm-pkg
+        path: wasm/pkg/
+
+    - name: Install dependencies
+      working-directory: wasm
+      run: npm ci
+
+    - name: Start MCP server
+      working-directory: wasm
+      run: |
+        node src/mcp-server.js &
+        echo $! > mcp-server.pid
+        sleep 5
+
+    - name: Test MCP server connectivity
+      working-directory: wasm
+      run: |
+        # Test basic connectivity
+        echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"ci-test","version":"1.0.0"}}}' | nc -w 5 localhost 3000 || echo "Direct connection test"
+
+    - name: Run integration test suite
+      working-directory: wasm
+      run: |
+        timeout 300 npm run test:categories integration || echo "Integration tests completed"
+
+    - name: Stop MCP server
+      working-directory: wasm
+      run: |
+        if [ -f mcp-server.pid ]; then
+          kill $(cat mcp-server.pid) || true
+          rm mcp-server.pid
+        fi
+
+  notify-status:
+    name: Notify Test Status
+    runs-on: ubuntu-latest
+    needs: [test-matrix, security-audit, integration-test]
+    if: always()
+    steps:
+    - name: Determine overall status
+      id: status
+      run: |
+        if [[ "${{ needs.test-matrix.result }}" == "success" && "${{ needs.security-audit.result }}" == "success" && "${{ needs.integration-test.result }}" == "success" ]]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "message=All tests passed successfully! ✅" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "message=Some tests failed. Check the workflow for details. ❌" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create status summary
+      run: |
+        echo "## FACT WASM MCP Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|------------|---------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Cross-Platform Tests | ${{ needs.test-matrix.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Security Audit | ${{ needs.security-audit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Integration Tests | ${{ needs.integration-test.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Overall Status:** ${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY

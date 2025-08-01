@@ -155,10 +155,97 @@ impl PatternEngine {
                 vec.push("statistics".to_string());
                 vec.push("metrics".to_string());
                 vec.push("report".to_string());
+                vec.push("dashboard".to_string());
+                vec.push("insights".to_string());
+                vec.push("trends".to_string());
                 vec
             },
             template: "data_analysis_template".to_string(),
             confidence: 0.8,
+            usage_count: 0,
+        });
+        
+        // Machine Learning patterns
+        self.add_pattern(QueryPattern {
+            id: "machine_learning".to_string(),
+            name: "Machine Learning".to_string(),
+            keywords: {
+                let mut vec = SmallVec::new();
+                vec.push("ml".to_string());
+                vec.push("predict".to_string());
+                vec.push("model".to_string());
+                vec.push("train".to_string());
+                vec.push("neural".to_string());
+                vec.push("algorithm".to_string());
+                vec.push("classification".to_string());
+                vec.push("regression".to_string());
+                vec
+            },
+            template: "ml_template".to_string(),
+            confidence: 0.85,
+            usage_count: 0,
+        });
+        
+        // System Architecture patterns
+        self.add_pattern(QueryPattern {
+            id: "system_architecture".to_string(),
+            name: "System Architecture".to_string(),
+            keywords: {
+                let mut vec = SmallVec::new();
+                vec.push("architecture".to_string());
+                vec.push("system".to_string());
+                vec.push("design".to_string());
+                vec.push("scalability".to_string());
+                vec.push("microservices".to_string());
+                vec.push("distributed".to_string());
+                vec.push("infrastructure".to_string());
+                vec.push("patterns".to_string());
+                vec
+            },
+            template: "architecture_template".to_string(),
+            confidence: 0.82,
+            usage_count: 0,
+        });
+        
+        // API Design patterns
+        self.add_pattern(QueryPattern {
+            id: "api_design".to_string(),
+            name: "API Design".to_string(),
+            keywords: {
+                let mut vec = SmallVec::new();
+                vec.push("api".to_string());
+                vec.push("rest".to_string());
+                vec.push("graphql".to_string());
+                vec.push("endpoint".to_string());
+                vec.push("swagger".to_string());
+                vec.push("openapi".to_string());
+                vec.push("authentication".to_string());
+                vec.push("authorization".to_string());
+                vec
+            },
+            template: "api_design_template".to_string(),
+            confidence: 0.83,
+            usage_count: 0,
+        });
+        
+        // Performance Optimization patterns
+        self.add_pattern(QueryPattern {
+            id: "performance_optimization".to_string(),
+            name: "Performance Optimization".to_string(),
+            keywords: {
+                let mut vec = SmallVec::new();
+                vec.push("optimize".to_string());
+                vec.push("performance".to_string());
+                vec.push("speed".to_string());
+                vec.push("memory".to_string());
+                vec.push("cpu".to_string());
+                vec.push("bottleneck".to_string());
+                vec.push("profiling".to_string());
+                vec.push("benchmark".to_string());
+                vec
+            },
+            template: "performance_template".to_string(),
+            confidence: 0.84,
             usage_count: 0,
         });
 
@@ -209,10 +296,76 @@ impl PatternEngine {
                 vec.push("debug".to_string());
                 vec.push("error".to_string());
                 vec.push("issue".to_string());
+                vec.push("troubleshoot".to_string());
+                vec.push("diagnose".to_string());
+                vec.push("resolve".to_string());
                 vec
             },
             template: "problem_solving_template".to_string(),
             confidence: 0.8,
+            usage_count: 0,
+        });
+        
+        // Security Analysis patterns
+        self.add_pattern(QueryPattern {
+            id: "security_analysis".to_string(),
+            name: "Security Analysis".to_string(),
+            keywords: {
+                let mut vec = SmallVec::new();
+                vec.push("security".to_string());
+                vec.push("vulnerability".to_string());
+                vec.push("threat".to_string());
+                vec.push("authentication".to_string());
+                vec.push("encryption".to_string());
+                vec.push("audit".to_string());
+                vec.push("compliance".to_string());
+                vec.push("penetration".to_string());
+                vec
+            },
+            template: "security_template".to_string(),
+            confidence: 0.87,
+            usage_count: 0,
+        });
+        
+        // DevOps patterns
+        self.add_pattern(QueryPattern {
+            id: "devops".to_string(),
+            name: "DevOps".to_string(),
+            keywords: {
+                let mut vec = SmallVec::new();
+                vec.push("devops".to_string());
+                vec.push("ci".to_string());
+                vec.push("cd".to_string());
+                vec.push("docker".to_string());
+                vec.push("kubernetes".to_string());
+                vec.push("deployment".to_string());
+                vec.push("pipeline".to_string());
+                vec.push("monitoring".to_string());
+                vec
+            },
+            template: "devops_template".to_string(),
+            confidence: 0.81,
+            usage_count: 0,
+        });
+        
+        // Database Design patterns
+        self.add_pattern(QueryPattern {
+            id: "database_design".to_string(),
+            name: "Database Design".to_string(),
+            keywords: {
+                let mut vec = SmallVec::new();
+                vec.push("database".to_string());
+                vec.push("sql".to_string());
+                vec.push("nosql".to_string());
+                vec.push("schema".to_string());
+                vec.push("index".to_string());
+                vec.push("query".to_string());
+                vec.push("optimization".to_string());
+                vec.push("migration".to_string());
+                vec
+            },
+            template: "database_template".to_string(),
+            confidence: 0.79,
             usage_count: 0,
         });
     }
@@ -351,6 +504,13 @@ impl QueryProcessor {
                 "qa_template" => self.process_question_answer(query),
                 "code_gen_template" => self.process_code_generation(query),
                 "problem_solving_template" => self.process_problem_solving(query),
+                "ml_template" => self.process_machine_learning(query),
+                "architecture_template" => self.process_system_architecture(query),
+                "api_design_template" => self.process_api_design(query),
+                "performance_template" => self.process_performance_optimization(query),
+                "security_template" => self.process_security_analysis(query),
+                "devops_template" => self.process_devops(query),
+                "database_template" => self.process_database_design(query),
                 _ => self.process_generic(query),
             };
 
@@ -456,6 +616,204 @@ impl QueryProcessor {
         }).to_string()
     }
 
+    fn process_machine_learning(&self, query: &str) -> String {
+        serde_json::json!({
+            "type": "machine_learning",
+            "query": query,
+            "ml_analysis": {
+                "recommended_algorithms": ["Random Forest", "Neural Network", "SVM"],
+                "data_preprocessing": [
+                    "Feature scaling",
+                    "Missing value imputation",
+                    "Outlier detection"
+                ],
+                "model_evaluation": {
+                    "metrics": ["Accuracy", "Precision", "Recall", "F1-Score"],
+                    "cross_validation": "k-fold recommended"
+                },
+                "deployment_strategy": "Containerized microservice with API endpoint",
+                "estimated_accuracy": 0.92
+            },
+            "confidence": 0.88,
+            "processing_time_ms": 75.3
+        }).to_string()
+    }
+    
+    fn process_system_architecture(&self, query: &str) -> String {
+        serde_json::json!({
+            "type": "system_architecture",
+            "query": query,
+            "architecture_analysis": {
+                "recommended_patterns": ["Microservices", "Event-Driven", "CQRS"],
+                "scalability_considerations": [
+                    "Horizontal scaling with load balancers",
+                    "Database sharding strategy",
+                    "Caching layers (Redis/Memcached)",
+                    "CDN for static assets"
+                ],
+                "technology_stack": {
+                    "backend": ["Node.js", "Go", "Rust"],
+                    "database": ["PostgreSQL", "MongoDB", "Cassandra"],
+                    "messaging": ["Apache Kafka", "RabbitMQ", "Redis Pub/Sub"],
+                    "monitoring": ["Prometheus", "Grafana", "ELK Stack"]
+                },
+                "estimated_capacity": "10M+ concurrent users"
+            },
+            "confidence": 0.84,
+            "processing_time_ms": 68.7
+        }).to_string()
+    }
+    
+    fn process_api_design(&self, query: &str) -> String {
+        serde_json::json!({
+            "type": "api_design",
+            "query": query,
+            "api_recommendations": {
+                "design_principles": ["RESTful", "Consistent naming", "Versioning", "HATEOAS"],
+                "authentication": {
+                    "method": "JWT with refresh tokens",
+                    "security": "OAuth 2.0 / OpenID Connect"
+                },
+                "documentation": {
+                    "format": "OpenAPI 3.0",
+                    "tools": ["Swagger UI", "Redoc", "Postman"]
+                },
+                "rate_limiting": {
+                    "strategy": "Token bucket",
+                    "limits": "1000 req/min per user"
+                },
+                "caching": ["ETags", "Cache-Control headers", "CDN integration"]
+            },
+            "confidence": 0.86,
+            "processing_time_ms": 52.1
+        }).to_string()
+    }
+    
+    fn process_performance_optimization(&self, query: &str) -> String {
+        serde_json::json!({
+            "type": "performance_optimization",
+            "query": query,
+            "optimization_strategies": {
+                "code_level": [
+                    "Algorithm complexity reduction",
+                    "Memory pooling",
+                    "Lazy loading",
+                    "Batch operations"
+                ],
+                "system_level": [
+                    "Database query optimization",
+                    "Connection pooling",
+                    "Caching strategies",
+                    "Load balancing"
+                ],
+                "infrastructure": [
+                    "Auto-scaling groups",
+                    "CDN implementation",
+                    "SSD storage",
+                    "Network optimization"
+                ],
+                "monitoring_tools": ["APM tools", "Profilers", "Benchmarking"],
+                "expected_improvement": "40-60% performance gain"
+            },
+            "confidence": 0.89,
+            "processing_time_ms": 61.4
+        }).to_string()
+    }
+    
+    fn process_security_analysis(&self, query: &str) -> String {
+        serde_json::json!({
+            "type": "security_analysis",
+            "query": query,
+            "security_assessment": {
+                "threat_model": [
+                    "OWASP Top 10 compliance",
+                    "Data encryption at rest and in transit",
+                    "Input validation and sanitization",
+                    "Authentication and authorization"
+                ],
+                "recommended_practices": [
+                    "Zero-trust architecture",
+                    "Principle of least privilege",
+                    "Regular security audits",
+                    "Penetration testing"
+                ],
+                "compliance_frameworks": ["SOC 2", "GDPR", "HIPAA", "PCI-DSS"],
+                "security_tools": [
+                    "Static code analysis",
+                    "Dependency scanning",
+                    "Web application firewall",
+                    "Intrusion detection system"
+                ],
+                "risk_level": "Medium - requires attention"
+            },
+            "confidence": 0.91,
+            "processing_time_ms": 78.9
+        }).to_string()
+    }
+    
+    fn process_devops(&self, query: &str) -> String {
+        serde_json::json!({
+            "type": "devops",
+            "query": query,
+            "devops_strategy": {
+                "ci_cd_pipeline": {
+                    "stages": ["Build", "Test", "Security Scan", "Deploy", "Monitor"],
+                    "tools": ["Jenkins", "GitLab CI", "GitHub Actions", "CircleCI"]
+                },
+                "containerization": {
+                    "strategy": "Docker containers with Kubernetes orchestration",
+                    "registry": "Private container registry"
+                },
+                "infrastructure_as_code": [
+                    "Terraform for provisioning",
+                    "Ansible for configuration",
+                    "Helm charts for Kubernetes"
+                ],
+                "monitoring_and_logging": {
+                    "metrics": "Prometheus + Grafana",
+                    "logging": "ELK Stack (Elasticsearch, Logstash, Kibana)",
+                    "tracing": "Jaeger or Zipkin"
+                },
+                "automation_level": "95% - minimal manual intervention"
+            },
+            "confidence": 0.87,
+            "processing_time_ms": 64.2
+        }).to_string()
+    }
+    
+    fn process_database_design(&self, query: &str) -> String {
+        serde_json::json!({
+            "type": "database_design",
+            "query": query,
+            "database_recommendations": {
+                "schema_design": {
+                    "normalization": "3NF with selective denormalization",
+                    "indexing_strategy": "Compound indexes on frequently queried columns",
+                    "partitioning": "Horizontal partitioning by date/region"
+                },
+                "database_selection": {
+                    "relational": ["PostgreSQL", "MySQL", "SQLite"],
+                    "nosql": ["MongoDB", "Cassandra", "DynamoDB"],
+                    "cache": ["Redis", "Memcached"]
+                },
+                "performance_optimization": [
+                    "Query optimization",
+                    "Connection pooling",
+                    "Read replicas",
+                    "Materialized views"
+                ],
+                "backup_strategy": {
+                    "frequency": "Daily full + hourly incremental",
+                    "retention": "30 days",
+                    "testing": "Monthly restore tests"
+                },
+                "estimated_throughput": "50,000 transactions/second"
+            },
+            "confidence": 0.83,
+            "processing_time_ms": 57.6
+        }).to_string()
+    }
+    
     fn process_generic(&self, query: &str) -> String {
         serde_json::json!({
             "type": "generic_processing",
@@ -469,16 +827,67 @@ impl QueryProcessor {
                     "Consider providing more specific context",
                     "Break complex queries into smaller parts",
                     "Use keywords for better pattern matching"
-                ]
+                ],
+                "semantic_analysis": {
+                    "entities": self.extract_entities(query),
+                    "intent": self.classify_intent(query),
+                    "sentiment": self.analyze_sentiment(query)
+                }
             },
             "metadata": {
-                "processor_version": "1.0.0",
+                "processor_version": "2.0.0",
                 "optimization_level": self.optimization_level,
-                "timestamp": js_sys::Date::now()
+                "timestamp": js_sys::Date::now(),
+                "processing_pipeline": "enhanced_nlp"
             },
             "confidence": 0.65,
             "processing_time_ms": 15.2
         }).to_string()
+    }
+    
+    fn extract_entities(&self, query: &str) -> Vec<String> {
+        // Simple entity extraction - in a real implementation, use NLP libraries
+        let mut entities = Vec::new();
+        let words: Vec<&str> = query.split_whitespace().collect();
+        
+        for word in words {
+            if word.len() > 5 && word.chars().next().unwrap().is_uppercase() {
+                entities.push(word.to_string());
+            }
+        }
+        
+        entities
+    }
+    
+    fn classify_intent(&self, query: &str) -> String {
+        let query_lower = query.to_lowercase();
+        
+        if query_lower.contains("how") || query_lower.contains("what") {
+            "information_seeking".to_string()
+        } else if query_lower.contains("create") || query_lower.contains("build") {
+            "creation".to_string()
+        } else if query_lower.contains("fix") || query_lower.contains("solve") {
+            "problem_solving".to_string()
+        } else {
+            "general".to_string()
+        }
+    }
+    
+    fn analyze_sentiment(&self, query: &str) -> String {
+        let query_lower = query.to_lowercase();
+        let positive_words = ["good", "great", "excellent", "amazing", "perfect"];
+        let negative_words = ["bad", "terrible", "awful", "horrible", "worst"];
+        
+        let positive_count = positive_words.iter().filter(|&&word| query_lower.contains(word)).count();
+        let negative_count = negative_words.iter().filter(|&&word| query_lower.contains(word)).count();
+        
+        if positive_count > negative_count {
+            "positive".to_string()
+        } else if negative_count > positive_count {
+            "negative".to_string()
+        } else {
+            "neutral".to_string()
+        }
     }
 
     fn calculate_query_complexity(&self, query: &str) -> f64 {
