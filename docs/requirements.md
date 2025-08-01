@@ -2,7 +2,7 @@
 
 ## 1. Project Overview
 
-**System Name**: FACT (Fast-Access Cached Tools)  
+**System Name**: FACT (Fast Augmented Context Tools)  
 **Purpose**: A lean retrieval pattern that skips vector search by caching static tokens in Claude Sonnet-4 and fetching live facts through authenticated tools hosted on Arcade.dev  
 **Goals**: Achieve deterministic answers, fresh data, and sub-100ms latency
 

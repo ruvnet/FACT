@@ -2,7 +2,7 @@
 """
 FACT System Main Entry Point
 
-This is the main entry point for the FACT (Fast-Access Cached Tools) system.
+This is the main entry point for the FACT (Fast Augmented Context Tools) system.
 Run this file to start the interactive CLI or process single queries.
 """
 
@@ -78,7 +78,7 @@ async def demo_command():
 async def main():
     """Main entry point with command routing."""
     parser = argparse.ArgumentParser(
-        description="FACT System - Fast-Access Cached Tools",
+        description="FACT System - Fast Augmented Context Tools",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     

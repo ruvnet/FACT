@@ -1,0 +1,86 @@
+[package]
+name = "fact-tools"
+version = "1.0.0"
+authors = ["FACT Team"]
+edition = "2021"
+description = "FACT (Fast Augmented Context Tools) - High-performance context processing engine for AI applications"
+documentation = "https://docs.rs/fact-tools"
+homepage = "https://github.com/ruvnet/FACT"
+repository = "https://github.com/ruvnet/FACT"
+license = "MIT"
+readme = "README.md"
+keywords = ["fact", "cognitive", "ai", "cache", "performance"]
+categories = ["algorithms", "caching", "command-line-utilities", "web-programming"]
+
+[lib]
+name = "fact_tools"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fact-tools"
+path = "src/bin/main.rs"
+
+[dependencies]
+# Core dependencies
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ahash = "0.8"
+smallvec = "1.13"
+parking_lot = "0.12"
+chrono = { version = "0.4", features = ["serde"] }
+num_cpus = "1.16"
+
+# CLI dependencies
+clap = { version = "4.4", features = ["derive", "cargo", "env", "unicode"] }
+tokio = { version = "1.35", features = ["full"] }
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging and diagnostics
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Performance monitoring
+dashmap = "5.5"
+crossbeam = "0.8"
+rayon = "1.8"
+
+# Optional features
+reqwest = { version = "0.11", features = ["json"], optional = true }
+indicatif = { version = "0.17", optional = true }
+colored = { version = "2.0", optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.4"
+tempfile = "3.8"
+mockall = "0.12"
+
+[features]
+default = ["cli", "progress", "color"]
+cli = []
+progress = ["indicatif"]
+color = ["colored"]
+network = ["reqwest"]
+full = ["cli", "progress", "color", "network"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.bench]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+
+
+[[example]]
+name = "basic"
+path = "examples/basic.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

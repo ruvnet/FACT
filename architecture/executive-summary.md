@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides an executive summary of the comprehensive architecture review conducted for the FACT (Fast-Access Cached Tools) system. The review evaluated the system's architectural integrity, component relationships, data flow patterns, scalability considerations, and security architecture.
+This document provides an executive summary of the comprehensive architecture review conducted for the FACT (Fast Augmented Context Tools) system. The review evaluated the system's architectural integrity, component relationships, data flow patterns, scalability considerations, and security architecture.
 
 ## Key Findings
 

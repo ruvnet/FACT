@@ -1,0 +1,62 @@
+{
+  "name": "@fact/mcp-server",
+  "version": "1.0.0",
+  "description": "FACT MCP Server - Model Context Protocol Server with WASM integration",
+  "main": "src/mcp-server.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "wasm-pack build --target nodejs --scope fact",
+    "build:wasm": "wasm-pack build --target nodejs --scope fact --out-dir pkg",
+    "build:mcp": "chmod +x src/mcp-server.js",
+    "build:all": "npm run build:wasm && npm run build:mcp",
+    "test": "wasm-pack test --node",
+    "test:unit": "cargo test --lib && wasm-pack test --node",
+    "test:integration": "cargo test --test '*'",
+    "test:mcp": "node tests/mcp_server_tests.js",
+    "test:mcp-comprehensive": "node scripts/test-mcp-comprehensive.js",
+    "test:performance": "node scripts/benchmark-runner.js",
+    "test:all": "./scripts/test-runner.sh",
+    "test:categories": "./scripts/test-runner.sh --categories",
+    "test:quick": "./scripts/test-runner.sh --categories unit,mcp --no-report",
+    "test:ci": "./scripts/test-runner.sh --no-report",
+    "bench": "cargo bench",
+    "bench:comprehensive": "cargo bench && node scripts/benchmark-runner.js",
+    "start:mcp": "node src/mcp-server.js",
+    "dev:mcp": "node --inspect src/mcp-server.js",
+    "install:claude": "claude mcp add fact-mcp node src/mcp-server.js",
+    "install:mcp": "./scripts/install-mcp.sh",
+    "clean": "rm -rf pkg/ target/ test-results/ benchmark-results/",
+    "clean:all": "npm run clean && cargo clean"
+  },
+  "dependencies": {
+    "@fact/wasm-core": "file:./pkg"
+  },
+  "devDependencies": {
+    "wasm-pack": "^0.12.1"
+  },
+  "bin": {
+    "fact-mcp": "./src/mcp-server.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "wasm",
+    "cognitive-templates",
+    "fact",
+    "ai",
+    "performance"
+  ],
+  "author": "FACT Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fact-team/fact-wasm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fact-team/fact-wasm/issues"
+  },
+  "homepage": "https://github.com/fact-team/fact-wasm#readme"
+}

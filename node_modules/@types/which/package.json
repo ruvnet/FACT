@@ -1,0 +1,35 @@
+{
+    "name": "@types/which",
+    "version": "3.0.4",
+    "description": "TypeScript definitions for which",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/which",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "vvakame",
+            "githubUsername": "vvakame",
+            "url": "https://github.com/vvakame"
+        },
+        {
+            "name": "cspotcode",
+            "githubUsername": "cspotcode",
+            "url": "https://github.com/cspotcode"
+        },
+        {
+            "name": "Piotr Błażejewicz",
+            "githubUsername": "peterblazejewicz",
+            "url": "https://github.com/peterblazejewicz"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/which"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "b1e35ca81c3da9996afe499fdd69d8fc3b710326b77371e390503de8f2ba02d9",
+    "typeScriptVersion": "4.7"
+}

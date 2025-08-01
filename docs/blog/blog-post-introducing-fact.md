@@ -1,4 +1,4 @@
-# Introducing FACT: Fast-Access Cached Tools
+# Introducing FACT: Fast Augmented Context Tools
 
 *A revolutionary approach to LLM data retrieval that combines prompt caching with tool-based execution for unprecedented performance and cost efficiency*
 
@@ -6,7 +6,7 @@
 
 ## TL;DR
 
-FACT (Fast-Access Cached Tools) is a production-ready platform that transforms how AI applications access data by merging Claude's native prompt caching with intelligent tool execution. The result? **3.2x faster responses**, **91.5% cost reduction**, and **85%+ cache hit rates** while maintaining security and accuracy.
+FACT (Fast Augmented Context Tools) is a production-ready platform that transforms how AI applications access data by merging Claude's native prompt caching with intelligent tool execution. The result? **3.2x faster responses**, **91.5% cost reduction**, and **85%+ cache hit rates** while maintaining security and accuracy.
 
 ---
 

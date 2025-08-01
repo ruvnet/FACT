@@ -4,7 +4,7 @@
 
 ## Overview
 
-The FACT (Fast-Access Cached Tools) system relies on a carefully selected set of Python libraries that provide robust functionality for AI integration, data validation, async operations, and system reliability.
+The FACT (Fast Augmented Context Tools) system relies on a carefully selected set of Python libraries that provide robust functionality for AI integration, data validation, async operations, and system reliability.
 
 ## Primary Dependencies
 

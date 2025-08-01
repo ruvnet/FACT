@@ -2,7 +2,7 @@
 
 ## Overview
 
-Welcome to the comprehensive documentation for the FACT (Fast-Access Cached Tools) benchmark system. This documentation suite provides everything you need to understand, install, configure, optimize, and troubleshoot the FACT system.
+Welcome to the comprehensive documentation for the FACT (Fast Augmented Context Tools) benchmark system. This documentation suite provides everything you need to understand, install, configure, optimize, and troubleshoot the FACT system.
 
 ## 📚 Documentation Structure
 

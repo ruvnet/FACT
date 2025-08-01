@@ -1,0 +1,50 @@
+{
+  "timestamp": 1753988152.2391021,
+  "optimizations": {
+    "wasm_sizes": {},
+    "cache_performance": {
+      "insertion_time_ms": 5.2084990002185805,
+      "retrieval_time_ms": 2.475174000210245,
+      "insertions_per_second": 1919938.9305019237,
+      "retrievals_per_second": 4040120.007381535,
+      "hit_rate": 1.0,
+      "total_operations": 20000
+    },
+    "memory_performance": {
+      "standard_allocation_ms": 12.749184999847785,
+      "pool_allocation_ms": 25.99855700009357,
+      "memory_improvement_pct": -103.92328607988645,
+      "allocations_per_second_standard": 392181.93163403746,
+      "allocations_per_second_pool": 192318.36597631188
+    },
+    "string_performance": {
+      "hashing_time_ms": 27.3714420000033,
+      "comparison_time_ms": 3.0041390000405954,
+      "hashes_per_second": 1826721.442004918,
+      "comparisons_per_second": 8321851.951478334,
+      "unique_hashes": 50000
+    },
+    "simd_performance": {
+      "standard_sum_ms": 0.8238190002884949,
+      "vectorized_sum_ms": 5.32220100012637,
+      "simd_improvement_pct": -546.040088692125,
+      "elements_per_second_standard": 121385886.90595968,
+      "elements_per_second_vectorized": 18789218.97117858,
+      "sum_result": 4999950000
+    }
+  },
+  "baseline_metrics": {},
+  "performance_gains": {
+    "cache_throughput_ops_per_sec": 5960058.937883459,
+    "memory_allocation_improvement_pct": -103.92328607988645,
+    "simd_computation_improvement_pct": -546.040088692125,
+    "estimated_overall_improvement_pct": -324.9816873860057,
+    "recommendations": [
+      "WASM bundle size optimized with 's' optimization level",
+      "Memory pool allocation reduces GC pressure",
+      "SIMD operations provide vectorized performance gains",
+      "Optimized hash maps (AHashMap) improve cache performance",
+      "LTO and codegen-units=1 maximize optimization"
+    ]
+  }
+}

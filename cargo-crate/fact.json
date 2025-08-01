@@ -1,0 +1,17 @@
+{
+  "engine_config": {
+    "timeout": {
+      "secs": 30,
+      "nanos": 0
+    },
+    "parallel": true,
+    "max_concurrent": 2,
+    "monitoring": true
+  },
+  "cache_size": 104857600,
+  "enable_monitoring": true,
+  "timeout": {
+    "secs": 30,
+    "nanos": 0
+  }
+}

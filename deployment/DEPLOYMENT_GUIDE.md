@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides comprehensive instructions for deploying the FACT (Fast API Cache Technology) system across different environments using Docker Compose or Kubernetes.
+This guide provides comprehensive instructions for deploying the FACT (Fast Augmented Context Tools) system across different environments using Docker Compose or Kubernetes.
 
 ## Quick Start
 

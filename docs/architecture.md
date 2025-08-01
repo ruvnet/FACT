@@ -2,7 +2,7 @@
 
 ## 1. System Overview
 
-The FACT (Fast-Access Cached Tools) system implements a three-tier architecture optimized for low-latency, deterministic responses through intelligent caching and tool-based data retrieval.
+The FACT (Fast Augmented Context Tools) system implements a three-tier architecture optimized for low-latency, deterministic responses through intelligent caching and tool-based data retrieval.
 
 ### 1.1 Architecture Principles
 - **Cache-First Design**: Leverage Claude Sonnet-4's native caching for static content

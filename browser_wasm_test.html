@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FACT WASM Browser Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .test-section h3 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .result {
+            background: #ecf0f1;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d5f4e6;
+            border-left: 4px solid #27ae60;
+        }
+        .error {
+            background: #fdf2f2;
+            border-left: 4px solid #e74c3c;
+        }
+        .info {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 FACT WASM Browser Compatibility Test</h1>
+        
+        <div id="status" class="status loading">
+            🔄 Initializing WASM module...
+        </div>
+        
+        <div class="buttons">
+            <button onclick="testBasicFunctions()" disabled id="btnBasic">Test Basic Functions</button>
+            <button onclick="testCache()" disabled id="btnCache">Test Cache Performance</button>
+            <button onclick="testQueryProcessor()" disabled id="btnQuery">Test Query Processor</button>
+            <button onclick="testUtilities()" disabled id="btnUtils">Test Utilities</button>
+            <button onclick="runBenchmark()" disabled id="btnBenchmark">Run Benchmark</button>
+            <button onclick="testMemoryUsage()" disabled id="btnMemory">Memory Usage</button>
+            <button onclick="runAllTests()" disabled id="btnAll">Run All Tests</button>
+            <button onclick="clearResults()" id="btnClear">Clear Results</button>
+        </div>
+        
+        <div class="metrics" id="metrics" style="display: none;">
+            <div class="metric-card">
+                <div class="metric-value" id="wasmSize">-</div>
+                <div class="metric-label">WASM Size (KB)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="cacheOps">-</div>
+                <div class="metric-label">Cache Ops/Sec</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="queryTime">-</div>
+                <div class="metric-label">Query Time (ms)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="memoryUsage">-</div>
+                <div class="metric-label">Memory (MB)</div>
+            </div>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import init, { 
+            FastCache, 
+            QueryProcessor, 
+            benchmark_cache_operations,
+            get_memory_usage,
+            get_wasm_info,
+            greet,
+            Timer,
+            PerformanceProfiler,
+            simple_hash,
+            validate_sql_query,
+            escape_sql_string,
+            format_bytes
+        } from './pkg/fact_wasm_core.js';
+
+        let wasmModule = null;
+        let cache = null;
+        let processor = null;
+
+        // Initialize WASM on page load
+        async function initWasm() {
+            try {
+                wasmModule = await init();
+                
+                cache = new FastCache(1000);
+                processor = new QueryProcessor();
+                
+                document.getElementById('status').innerHTML = '✅ WASM module ready!';
+                document.getElementById('status').className = 'status ready';
+                
+                // Enable all buttons
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    if (btn.id !== 'btnClear') {
+                        btn.disabled = false;
+                    }
+                });
+                
+                // Show metrics
+                document.getElementById('metrics').style.display = 'grid';
+                
+                // Get WASM size (approximate)
+                const response = await fetch('./pkg/fact_wasm_core_bg.wasm');
+                const arrayBuffer = await response.arrayBuffer();
+                const sizeKB = Math.round(arrayBuffer.byteLength / 1024);
+                document.getElementById('wasmSize').textContent = sizeKB;
+                
+                log('🎉 FACT WASM initialized successfully!', 'success');
+                log('Module info: ' + JSON.stringify(mapToObject(get_wasm_info()), null, 2), 'info');
+                
+            } catch (error) {
+                document.getElementById('status').innerHTML = '❌ Failed to initialize WASM';
+                document.getElementById('status').className = 'status error';
+                log('Failed to initialize WASM: ' + error.message, 'error');
+            }
+        }
+
+        // Helper function to convert Maps to Objects for JSON serialization
+        function mapToObject(map) {
+            if (map instanceof Map) {
+                const obj = {};
+                for (let [key, value] of map) {
+                    obj[key] = mapToObject(value);
+                }
+                return obj;
+            } else if (Array.isArray(map)) {
+                return map.map(mapToObject);
+            } else {
+                return map;
+            }
+        }
+
+        // Logging function
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        // Test functions
+        window.testBasicFunctions = function() {
+            try {
+                log('🧪 Testing basic functions...', 'info');
+                
+                const greeting = greet('Browser Test');
+                log(`✅ Greeting: ${greeting}`, 'success');
+                
+                const info = get_wasm_info();
+                log(`✅ WASM Info: ${JSON.stringify(mapToObject(info), null, 2)}`, 'success');
+                
+                const memory = get_memory_usage();
+                log(`✅ Memory: ${JSON.stringify(mapToObject(memory), null, 2)}`, 'success');
+                
+                // Update memory metric
+                const memObj = mapToObject(memory);
+                document.getElementById('memoryUsage').textContent = memObj.wasm_memory_mb;
+                
+            } catch (error) {
+                log(`❌ Basic functions test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testCache = function() {
+            try {
+                log('🗄️ Testing cache performance...', 'info');
+                
+                // Test basic cache operations
+                const testData = { message: 'Hello Browser WASM!', timestamp: Date.now() };
+                cache.set('browser-test', JSON.stringify(testData), BigInt(60000));
+                
+                const retrieved = cache.get('browser-test');
+                const parsed = JSON.parse(retrieved);
+                log(`✅ Cache basic test: ${parsed.message}`, 'success');
+                
+                // Performance test
+                log('⚡ Running cache performance test...', 'info');
+                const startTime = performance.now();
+                
+                for (let i = 0; i < 1000; i++) {
+                    cache.set(`perf-${i}`, `value-${i}`, BigInt(60000));
+                }
+                
+                const insertTime = performance.now() - startTime;
+                
+                const retrieveStart = performance.now();
+                for (let i = 0; i < 1000; i++) {
+                    cache.get(`perf-${i}`);
+                }
+                const retrieveTime = performance.now() - retrieveStart;
+                
+                const opsPerSec = Math.round(1000 / (insertTime / 1000));
+                document.getElementById('cacheOps').textContent = opsPerSec;
+                
+                log(`✅ Cache performance:`, 'success');
+                log(`   • 1000 inserts: ${insertTime.toFixed(2)}ms`, 'success');
+                log(`   • 1000 retrieves: ${retrieveTime.toFixed(2)}ms`, 'success');
+                log(`   • Insert ops/sec: ${opsPerSec}`, 'success');
+                
+                const stats = cache.stats();
+                log(`✅ Cache stats: ${JSON.stringify(mapToObject(stats), null, 2)}`, 'success');
+                
+            } catch (error) {
+                log(`❌ Cache test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testQueryProcessor = function() {
+            try {
+                log('📊 Testing query processor...', 'info');
+                
+                const queries = [
+                    'SELECT * FROM companies',
+                    'SELECT name, revenue FROM companies WHERE revenue > 1000000',
+                    'INSERT INTO companies (name, revenue) VALUES ("BrowserCorp", 750000)'
+                ];
+                
+                let totalTime = 0;
+                for (const query of queries) {
+                    const result = processor.process_query(query);
+                    totalTime += result.execution_time_ms;
+                    
+                    log(`✅ Query: "${query}"`, 'success');
+                    log(`   Result: Success=${result.success}, Time=${result.execution_time_ms.toFixed(3)}ms, Cache=${result.cache_hit}`, 'success');
+                }
+                
+                const avgTime = totalTime / queries.length;
+                document.getElementById('queryTime').textContent = avgTime.toFixed(3);
+                
+                // Test caching
+                const cachedQuery = 'SELECT * FROM companies';
+                const first = processor.process_query(cachedQuery);
+                const second = processor.process_query(cachedQuery);
+                
+                log(`✅ Cache test:`, 'success');
+                log(`   First run: Cache=${first.cache_hit}, Time=${first.execution_time_ms.toFixed(3)}ms`, 'success');
+                log(`   Second run: Cache=${second.cache_hit}, Time=${second.execution_time_ms.toFixed(3)}ms`, 'success');
+                
+                const stats = processor.get_stats();
+                log(`✅ Processor stats: ${JSON.stringify(mapToObject(stats), null, 2)}`, 'success');
+                
+            } catch (error) {
+                log(`❌ Query processor test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testUtilities = function() {
+            try {
+                log('🔧 Testing utility functions...', 'info');
+                
+                // Test hash function
+                const hash = simple_hash('browser-test-string');
+                log(`✅ Hash of 'browser-test-string': ${hash}`, 'success');
+                
+                // Test SQL validation
+                const validQuery = validate_sql_query('SELECT * FROM users');
+                const invalidQuery = validate_sql_query('INVALID QUERY SYNTAX');
+                
+                log(`✅ Valid SQL validation: ${JSON.stringify(mapToObject(validQuery), null, 2)}`, 'success');
+                log(`✅ Invalid SQL validation: ${JSON.stringify(mapToObject(invalidQuery), null, 2)}`, 'success');
+                
+                // Test SQL escaping
+                const escaped = escape_sql_string("It's a browser test with 'quotes'");
+                log(`✅ SQL escaped: "${escaped}"`, 'success');
+                
+                // Test byte formatting
+                const formatted1 = format_bytes(1024 * 1024 * 2.5);
+                const formatted2 = format_bytes(1024 * 1024 * 1024 * 1.5);
+                log(`✅ Format 2.5MB: ${formatted1}`, 'success');
+                log(`✅ Format 1.5GB: ${formatted2}`, 'success');
+                
+                // Test Timer
+                const timer = new Timer('Browser Test Timer');
+                setTimeout(() => {
+                    const elapsed = timer.finish();
+                    log(`✅ Timer test completed in ${elapsed.toFixed(2)}ms`, 'success');
+                }, 100);
+                
+            } catch (error) {
+                log(`❌ Utilities test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.runBenchmark = function() {
+            try {
+                log('🏁 Running comprehensive benchmark...', 'info');
+                log('⚡ This may take a moment...', 'info');
+                
+                setTimeout(() => {
+                    try {
+                        const result = benchmark_cache_operations(10000);
+                        const resultObj = mapToObject(result);
+                        
+                        log('✅ Benchmark completed!', 'success');
+                        log(`📊 Results: ${JSON.stringify(resultObj, null, 2)}`, 'success');
+                        
+                        if (resultObj.ops_per_second && resultObj.ops_per_second.inserts) {
+                            document.getElementById('cacheOps').textContent = 
+                                Math.round(resultObj.ops_per_second.inserts);
+                        }
+                        
+                    } catch (error) {
+                        log(`❌ Benchmark failed: ${error.message}`, 'error');
+                    }
+                }, 10);
+                
+            } catch (error) {
+                log(`❌ Benchmark test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testMemoryUsage = function() {
+            try {
+                log('💾 Testing memory usage...', 'info');
+                
+                const memory = get_memory_usage();
+                const memObj = mapToObject(memory);
+                
+                log(`✅ Memory usage: ${JSON.stringify(memObj, null, 2)}`, 'success');
+                
+                // Update metric
+                document.getElementById('memoryUsage').textContent = memObj.wasm_memory_mb || '1.0';
+                
+                // Test with profiler
+                const profiler = new PerformanceProfiler();
+                profiler.mark('Memory Test Start');
+                
+                // Simulate some work
+                for (let i = 0; i < 1000; i++) {
+                    cache.set(`mem-test-${i}`, `data-${i}`, BigInt(5000));
+                }
+                
+                profiler.mark('After Cache Operations');
+                
+                const report = profiler.get_report();
+                log(`✅ Performance profile: ${JSON.stringify(mapToObject(report), null, 2)}`, 'success');
+                
+            } catch (error) {
+                log(`❌ Memory usage test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.runAllTests = function() {
+            log('🚀 Running all tests...', 'info');
+            clearResults();
+            
+            setTimeout(() => testBasicFunctions(), 100);
+            setTimeout(() => testUtilities(), 500);
+            setTimeout(() => testCache(), 1000);
+            setTimeout(() => testQueryProcessor(), 2000);
+            setTimeout(() => testMemoryUsage(), 3000);
+            setTimeout(() => runBenchmark(), 4000);
+            setTimeout(() => {
+                log('✅ All tests completed!', 'success');
+            }, 6000);
+        };
+
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = '';
+        };
+
+        // Initialize on page load
+        initWasm();
+    </script>
+</body>
+</html>

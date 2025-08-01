@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides a comprehensive overview of the FACT (Fast-Access Cached Tools) system architecture, components, and design principles. Use this to understand how the system works, how components interact, and how to extend or modify the system.
+This guide provides a comprehensive overview of the FACT (Fast Augmented Context Tools) system architecture, components, and design principles. Use this to understand how the system works, how components interact, and how to extend or modify the system.
 
 ## Table of Contents
 

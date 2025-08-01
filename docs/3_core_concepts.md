@@ -2,7 +2,7 @@
 
 ## Understanding FACT Architecture
 
-FACT (Fast-Access Cached Tools) is built on several key concepts that work together to provide fast, secure, and intelligent access to financial data.
+FACT (Fast Augmented Context Tools) is built on several key concepts that work together to provide fast, secure, and intelligent access to financial data.
 
 ## 1. Cache-First Design
 
