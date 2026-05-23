@@ -12,8 +12,4 @@ except ImportError:
     # Fallback to absolute imports when called from scripts
     from security.auth import AuthorizationManager, Authorization, AuthFlow
 
-__all__ = [
-    'AuthorizationManager',
-    'Authorization', 
-    'AuthFlow'
-]
+__all__ = ["AuthorizationManager", "Authorization", "AuthFlow"]

@@ -17,9 +17,9 @@ except ImportError:
     from arcade.errors import ArcadeError, ArcadeConnectionError, ArcadeExecutionError
 
 __all__ = [
-    'ArcadeClient',
-    'ArcadeGateway', 
-    'ArcadeError',
-    'ArcadeConnectionError',
-    'ArcadeExecutionError'
+    "ArcadeClient",
+    "ArcadeGateway",
+    "ArcadeError",
+    "ArcadeConnectionError",
+    "ArcadeExecutionError",
 ]
