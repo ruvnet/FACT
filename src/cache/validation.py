@@ -582,7 +582,7 @@ class CacheValidator:
                             repair_summary["warnings_addressed"] += 1
             
             logger.info("Auto-repair completed", **repair_summary)
-            return freed_space
+            return repair_summary
             
         except Exception as e:
             logger.error("Auto-repair failed", error=str(e))
