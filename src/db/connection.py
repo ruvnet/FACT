@@ -409,9 +409,8 @@ class DatabaseManager:
         
         if table_name.lower() in forbidden_tables:
             return False
-        
+
         return True
-        logger.debug("SQL query validation passed", statement=statement[:100])
     
     async def execute_query(self, statement: str) -> QueryResult:
         """
