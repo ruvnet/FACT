@@ -365,7 +365,8 @@ def _validate_url_security(url: str) -> None:
         localhost_patterns = [
             "localhost",
             "127.0.0.1",
-            "0.0.0.0",
+            # Blocklist entry for outbound URLs; nothing binds to it.
+            "0.0.0.0",  # nosec B104
             "::1",
             "metadata.google.internal",
             "169.254.169.254",
