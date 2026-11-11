@@ -1,7 +1,8 @@
 # FACT System Production Dockerfile
 # Multi-stage build for optimized production image
 
-FROM python:3.11-slim-bullseye AS base
+# Debian 11 (bullseye) is EOL; its security archive no longer serves packages.
+FROM python:3.11-slim-bookworm AS base
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -63,8 +64,10 @@ RUN mkdir -p /app/data /app/logs /app/output && \
     chown -R fact:fact /app
 
 # Security hardening
+# (directories need the execute bit or the package cannot be imported)
 RUN chmod 755 /app && \
-    chmod -R 644 /app/src && \
+    find /app/src -type d -exec chmod 755 {} + && \
+    find /app/src -type f -exec chmod 644 {} + && \
     chmod 755 /app/main.py
 
 USER fact

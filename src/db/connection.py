@@ -332,7 +332,7 @@ class DatabaseManager:
         # Generate cache key for query validation
         import hashlib
 
-        query_hash = hashlib.md5(statement.encode()).hexdigest()
+        query_hash = hashlib.sha256(statement.encode()).hexdigest()
 
         # Check cache first
         if query_hash in self._query_plan_cache:
@@ -581,7 +581,10 @@ class DatabaseManager:
 
                     # Get row count for each table using parameterized query
                     # Note: Table names cannot be parameterized, so we validate them first
-                    cursor = await db.execute(f'SELECT COUNT(*) FROM "{table_name}"')
+                    # Name comes from sqlite_master and passed _is_valid_table_name above.
+                    cursor = await db.execute(
+                        f'SELECT COUNT(*) FROM "{table_name}"'  # nosec B608
+                    )
                     count = (await cursor.fetchone())[0]
                     await cursor.close()
                     table_info[table_name] = {"row_count": count}

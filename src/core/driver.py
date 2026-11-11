@@ -34,7 +34,11 @@ try:
     from ..tools.connectors.sql import initialize_sql_tool
     from ..monitoring.metrics import get_metrics_collector
     from ..cache import initialize_cache_system, get_cache_system, FACTCacheSystem
-    from ..cache.resilience import ResilientCacheWrapper, CacheCircuitBreaker
+    from ..cache.resilience import (
+        CacheCircuitBreaker,
+        CircuitBreakerConfig,
+        ResilientCacheWrapper,
+    )
 except ImportError:
     # Fall back to absolute imports (when run as script)
     import sys
@@ -50,7 +54,11 @@ except ImportError:
     from tools.connectors.sql import initialize_sql_tool
     from monitoring.metrics import get_metrics_collector
     from cache import initialize_cache_system, get_cache_system, FACTCacheSystem
-    from cache.resilience import ResilientCacheWrapper, CacheCircuitBreaker
+    from cache.resilience import (  # type: ignore[no-redef]
+        CacheCircuitBreaker,
+        CircuitBreakerConfig,
+        ResilientCacheWrapper,
+    )
 
 
 logger = structlog.get_logger(__name__)
@@ -408,8 +416,6 @@ class FACTDriver:
             )
 
             # Initialize circuit breaker for cache resilience
-            from ..cache.resilience import CircuitBreakerConfig
-
             circuit_config = CircuitBreakerConfig(
                 failure_threshold=5,  # Open after 5 failures
                 success_threshold=3,  # Close after 3 successes
